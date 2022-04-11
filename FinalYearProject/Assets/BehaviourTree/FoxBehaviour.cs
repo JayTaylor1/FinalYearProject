@@ -8,6 +8,7 @@ public class FoxBehaviour : MonoBehaviour
     BehaviourTree tree;
     NavMeshAgent agent;
     public GameObject target;
+    public string Action = "Idle";
 
     public enum ActionState {IDLE, WORKING};
     ActionState state = ActionState.IDLE;
@@ -44,7 +45,7 @@ public class FoxBehaviour : MonoBehaviour
 
 
         FoxTree.AddChild(Chase);
-        FoxTree.AddChild(roam);
+        FoxTree.AddChild(Wonder);
 
         tree.AddChild(FoxTree);
 
@@ -53,11 +54,36 @@ public class FoxBehaviour : MonoBehaviour
 
     }
 
+    public GameObject GetClosestTarget()
+    {
+        GameObject[] Preys = GameObject.FindGameObjectsWithTag("rabbit");
+        float dist = Mathf.Infinity;
+        GameObject closestPrey = Preys[0];
+
+        for (int i = 0; i < Preys.Length; i++)
+        {
+            if (Vector3.Distance(this.transform.position, Preys[i].transform.position) < dist)
+            {
+                closestPrey = Preys[i];
+                dist = Vector3.Distance(this.transform.position, Preys[i].transform.position);
+            }
+        }
+        return target;
+    }
+
     public Node.Status TargetInRange()
     {
+        target = GetClosestTarget();
         if (Vector3.Distance(this.transform.position, target.transform.position) < 10)
         {
+            Action = "Chasing";
             return Node.Status.SUCCESS;
+        }
+        else if (Action == "Chasing")
+        {
+            Action = "Idle";
+            agent.isStopped = true;
+            return Node.Status.FAILED;
         }
         return Node.Status.FAILED;
     }
@@ -88,6 +114,7 @@ public class FoxBehaviour : MonoBehaviour
     Vector3 wanderTarget = Vector3.zero;
     public Node.Status Roam()
     {
+        Action = "Roaming";
         float wanderRadius = 10;
         float wanderDistance = 10;
         float wanderJitter = 1;
@@ -128,6 +155,7 @@ public class FoxBehaviour : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
         treeStatus = tree.Process();
 
     }
