@@ -7,7 +7,7 @@ public class RabbitBehaviour : MonoBehaviour
 {
     BehaviourTree tree;
     NavMeshAgent agent;
-    public GameObject target;
+    GameObject target;
     public GameObject home;
     public string Action = "Idle";
 
@@ -28,13 +28,14 @@ public class RabbitBehaviour : MonoBehaviour
 
         Selector RabbitTree = new Selector("Rabbit");                       //  Rabbit (Selector)
         
-        Sequence Hide = new Sequence("Hide");                               //      Preditor in Radius (Selector)
+        Sequence Hide = new Sequence("Hide");                               //      Preditor in Radius (Sequence)
         Leaf inRangeTarget = new Leaf("Target in Range?", TargetInRange);   //          Sensed Enemy (Condition)
         Selector Flee = new Selector("Flee");                               //          Flee (Selector)
         Sequence GoHome = new Sequence("Go Home");                          //              GoHome (Sequence)
         Leaf canGoHome = new Leaf("Can go Home?", CanGoHome);               //                  Can Go Home (Condition)
         Leaf goToHome = new Leaf("Go To Home", FleeHome);                   //                  Flee Home (Action)
         Leaf goToHide = new Leaf("Go to Hide", GoToHide);                   //              Evade (Action)
+
         Sequence Wonder = new Sequence("Wonder");                           //      Wonder (Sequence)
         Leaf roam = new Leaf("Roam Freely", Roam);                          //          Roam (Action)
 
@@ -63,6 +64,11 @@ public class RabbitBehaviour : MonoBehaviour
     public GameObject GetClosestTarget()
     {
         GameObject[] Preditors = GameObject.FindGameObjectsWithTag("fox");
+        print(Preditors.Length);
+        if (Preditors.Length == 0)
+        {
+            return null;
+        }
         float dist = Mathf.Infinity;
         GameObject closestPreditors = Preditors[0];
 
@@ -74,17 +80,20 @@ public class RabbitBehaviour : MonoBehaviour
                 dist = Vector3.Distance(this.transform.position, Preditors[i].transform.position);
             }
         }
-        return target;
+        return closestPreditors;
     }
 
 
     public Node.Status TargetInRange()
     {
         target = GetClosestTarget();
+        if (target == null)
+        {
+            return Node.Status.FAILED;
+        }
         if (Vector3.Distance(this.transform.position, target.transform.position) < 10)
         {
             Action = "Fleeing";
-            print(Action);
             return Node.Status.SUCCESS;
         }
         else if (Action == "Fleeing")
@@ -99,9 +108,9 @@ public class RabbitBehaviour : MonoBehaviour
     //Can go home if facing towards home and there is no preditors infront
     public Node.Status CanGoHome()
     {
-        Vector3 toHome = this.transform.position - home.transform.position;
+        Vector3 toHome = home.transform.position - this.transform.position;
         float lookingAngle = Vector3.Angle(this.transform.forward, toHome);
-        if (lookingAngle < 15)
+        if (lookingAngle < 45)
         {
             GameObject[] Preditors = GameObject.FindGameObjectsWithTag("fox");
 
