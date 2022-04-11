@@ -406,6 +406,10 @@ PrefabInstance:
       propertyPath: target
       value: 
       objectReference: {fileID: 181785601}
+    - target: {fileID: 1877841299501983419, guid: 40962fea730037b4990d10738ffc635e, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1877841299501983421, guid: 40962fea730037b4990d10738ffc635e, type: 3}
       propertyPath: m_Name
       value: Fox
@@ -425,6 +429,19 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 618229309192869675, guid: 53a111e1ea33bb4408eb709bf0558bbb, type: 3}
   m_PrefabInstance: {fileID: 635890453}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &181785608
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 181785601}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cedc7e95ded7e594994b44d37830086d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  target: {fileID: 212350637}
 --- !u!1001 &210763872
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -881,6 +898,10 @@ PrefabInstance:
       propertyPath: target
       value: 
       objectReference: {fileID: 212350637}
+    - target: {fileID: 618229309192869681, guid: 53a111e1ea33bb4408eb709bf0558bbb, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 53a111e1ea33bb4408eb709bf0558bbb, type: 3}
 --- !u!1001 &739950695

@@ -7,10 +7,12 @@ public class Rabbit : MonoBehaviour
 {
     NavMeshAgent agent;
     public GameObject target;
+    public string status;
     // Start is called before the first frame update
     void Start()
     {
         agent = this.GetComponent<NavMeshAgent>();
+        status = "Idle";
     }
 
     void Seek(Vector3 location)
@@ -71,20 +73,53 @@ public class Rabbit : MonoBehaviour
         float dist = Mathf.Infinity;
         Vector3 chosenSpot = Vector3.zero;
         Vector3 chosenDir = Vector3.zero;
+        float chosenAngle = Mathf.Infinity;
         GameObject chosenGO = World.Instance.GetHidingSpots()[0];
 
+        //check if hiding spot is infront of rabbit
         for (int i = 0; i < World.Instance.GetHidingSpots().Length; i++)
-        {
-            Vector3 hideDir = World.Instance.GetHidingSpots()[i].transform.position - target.transform.position;
-            Vector3 hidePos = World.Instance.GetHidingSpots()[i].transform.position + hideDir.normalized * 5;
-            if (Vector3.Distance(this.transform.position, hidePos) < dist)
+        {          
+            Vector3 toHide = World.Instance.GetHidingSpots()[i].transform.position - this.transform.position;
+            float lookingAngle = Vector3.Angle(this.transform.forward, toHide);
+
+            if (lookingAngle < 60 || lookingAngle < chosenAngle)
             {
-                chosenSpot = hidePos;
-                chosenDir = hideDir;
-                chosenGO = World.Instance.GetHidingSpots()[i];
-                dist = Vector3.Distance(this.transform.position, hidePos);
+                Vector3 hideDir = World.Instance.GetHidingSpots()[i].transform.position - target.transform.position;
+                Vector3 hidePos = World.Instance.GetHidingSpots()[i].transform.position + hideDir.normalized * 5;               
+                    chosenSpot = hidePos;
+                    chosenDir = hideDir;
+                    chosenAngle = lookingAngle;
+                    chosenGO = World.Instance.GetHidingSpots()[i];
+                    dist = Vector3.Distance(this.transform.position, hidePos);               
+            }
+
+        }
+
+
+        if (chosenSpot == Vector3.zero)
+        {
+            for (int i = 0; i < World.Instance.GetHidingSpots().Length; i++)
+            {
+
+
+                //##########################################################################
+
+
+
+                Vector3 hideDir = World.Instance.GetHidingSpots()[i].transform.position - target.transform.position;
+                Vector3 hidePos = World.Instance.GetHidingSpots()[i].transform.position + hideDir.normalized * 5;
+                if (Vector3.Distance(this.transform.position, hidePos) < dist)
+                {
+                    chosenSpot = hidePos;
+                    chosenDir = hideDir;
+                    chosenGO = World.Instance.GetHidingSpots()[i];
+                    dist = Vector3.Distance(this.transform.position, hidePos);
+                }
             }
         }
+
+
+
         Collider hideCol = chosenGO.GetComponent<Collider>();
         Ray backRay = new Ray(chosenSpot, -chosenDir.normalized);
         RaycastHit info;
@@ -110,13 +145,58 @@ public class Rabbit : MonoBehaviour
         return false;
     }
 
+    bool TargetCanSeeMe()
+    {
+        Vector3 toAgent = this.transform.position - target.transform.position;
+        float lookingAngle = Vector3.Angle(target.transform.forward, toAgent);
+        if(lookingAngle < 60)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    bool coolDown = false;
+    void BehaviourCoolDown()
+    {
+        coolDown = false;
+    }
+
+    bool TargetInRange()
+    {
+        if(Vector3.Distance(this.transform.position, target.transform.position) < 10)
+        {
+            return true;
+        }
+        return false ;
+    }
 
     // Update is called once per frame
     void Update()
     {
-        if (CanSeeTarget())
+        if (!coolDown)
         {
-            CleverHide();
+            if (!TargetInRange())
+            {
+                Wander();
+            }
+            else if (CanSeeTarget() && TargetCanSeeMe())
+            {
+                status = "Hiding";
+                CleverHide();
+                coolDown = true;
+                Invoke("BehaviourCoolDown", 2);
+            }
+            else if(!CanSeeTarget() && TargetInRange())
+            {
+                status = "Evading";
+                Evade();
+            }
+            else
+            {
+                status = "Wondering";
+                Wander();
+            }
         }
     }
 }
