@@ -10,6 +10,7 @@ public class LightingManager : MonoBehaviour
 
     [SerializeField, Range(0, 24)] private float TimeOfDay;
     public int Day;
+    private bool isnewDawn = true;
 
 
     private int previousDay = 0;
@@ -28,10 +29,19 @@ public class LightingManager : MonoBehaviour
             if (((int)TimeOfDay % 24 == 0) && (Day != previousDay))
             {
                 newDay();
+
                 //print("New Day");
                 previousDay = Day;
+                isnewDawn = true;
             }
-            
+
+            if (((int)TimeOfDay % 24 == 4) && (isnewDawn == true))
+            {
+                newDawn();
+                //print("New Day");
+                isnewDawn = false;
+            }
+
 
 
             //TimeOfDay %= 24;
@@ -101,8 +111,21 @@ public class LightingManager : MonoBehaviour
         {
             rabbits[i].GetComponent<RabbitBehaviour>().incrementAge();
         }
-
+        GameObject[] homes = GameObject.FindGameObjectsWithTag("home");
+        for (int i = 0; i < homes.Length; i++)
+        {
+            homes[i].GetComponent<home>().updateContentsAge();
+        }
     }
 
+    public void newDawn()
+    {
+
+        GameObject[] homes = GameObject.FindGameObjectsWithTag("home");
+        for (int i = 0; i < homes.Length; i++)
+        {
+            homes[i].GetComponent<home>().releaseRabbits();
+        }
+    }
 
 }

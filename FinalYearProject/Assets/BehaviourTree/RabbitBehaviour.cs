@@ -247,7 +247,14 @@ public class RabbitBehaviour : MonoBehaviour
         float distanceToTarget = Vector3.Distance(home.transform.position, this.transform.position);
         if (distanceToTarget < 2)
         {
-            this.gameObject.SetActive(false);
+            //this.GetComponent<Renderer>().enabled = false;
+
+
+            //print(this.gameObject);
+
+            home.GetComponent<home>().enterRabbit(this.gameObject);
+
+
         }
         return Node.Status.SUCCESS;
     }
@@ -361,10 +368,6 @@ public class RabbitBehaviour : MonoBehaviour
     void Update()
     {
         treeStatus = tree.Process();
-
-
-
-
     }
 
 

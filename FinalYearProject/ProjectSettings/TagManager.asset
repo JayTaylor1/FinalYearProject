@@ -7,6 +7,7 @@ TagManager:
   - hide
   - fox
   - rabbit
+  - home
   layers:
   - Default
   - TransparentFX

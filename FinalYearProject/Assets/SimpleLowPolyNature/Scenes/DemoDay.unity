@@ -293,9 +293,10 @@ GameObject:
   - component: {fileID: 116705178}
   - component: {fileID: 116705177}
   - component: {fileID: 116705176}
+  - component: {fileID: 116705180}
   m_Layer: 0
   m_Name: Home (1)
-  m_TagString: Untagged
+  m_TagString: home
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -376,6 +377,19 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &116705180
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 116705175}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ed309407dc709a47b4f1ee0e8d32764, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rabbitsInside: 0
 --- !u!1 &125120696
 GameObject:
   m_ObjectHideFlags: 0
@@ -541,27 +555,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 501295248943452728, guid: d6a5e2c4aefa6804b8f7d2af9a9676b5, type: 3}
   m_PrefabInstance: {fileID: 136880279}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &181785601 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 618229309192869675, guid: 53a111e1ea33bb4408eb709bf0558bbb, type: 3}
-  m_PrefabInstance: {fileID: 635890453}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &181785608
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 181785601}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cedc7e95ded7e594994b44d37830086d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  timeofday: 0
-  home: {fileID: 125120696}
-  Action: Idle
-  Age: 0
 --- !u!1001 &210763872
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -961,13 +954,17 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 181785608, guid: 53a111e1ea33bb4408eb709bf0558bbb, type: 3}
+      propertyPath: Age
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 181785608, guid: 53a111e1ea33bb4408eb709bf0558bbb, type: 3}
+      propertyPath: home
+      value: 
+      objectReference: {fileID: 125120696}
     - target: {fileID: 618229309192869675, guid: 53a111e1ea33bb4408eb709bf0558bbb, type: 3}
       propertyPath: m_Name
       value: Rabbit
-      objectReference: {fileID: 0}
-    - target: {fileID: 618229309192869675, guid: 53a111e1ea33bb4408eb709bf0558bbb, type: 3}
-      propertyPath: m_TagString
-      value: rabbit
       objectReference: {fileID: 0}
     - target: {fileID: 618229309192869680, guid: 53a111e1ea33bb4408eb709bf0558bbb, type: 3}
       propertyPath: m_RootOrder
@@ -1011,14 +1008,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 618229309192869680, guid: 53a111e1ea33bb4408eb709bf0558bbb, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 618229309192869681, guid: 53a111e1ea33bb4408eb709bf0558bbb, type: 3}
-      propertyPath: target
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 618229309192869681, guid: 53a111e1ea33bb4408eb709bf0558bbb, type: 3}
-      propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -1620,7 +1609,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 618229309192869680, guid: 53a111e1ea33bb4408eb709bf0558bbb, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 18.28
+      value: 26.8
       objectReference: {fileID: 0}
     - target: {fileID: 618229309192869680, guid: 53a111e1ea33bb4408eb709bf0558bbb, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1628,7 +1617,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 618229309192869680, guid: 53a111e1ea33bb4408eb709bf0558bbb, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -47.6
+      value: 1.5
       objectReference: {fileID: 0}
     - target: {fileID: 618229309192869680, guid: 53a111e1ea33bb4408eb709bf0558bbb, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1666,7 +1655,8 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 181785608, guid: 53a111e1ea33bb4408eb709bf0558bbb, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 53a111e1ea33bb4408eb709bf0558bbb, type: 3}
 --- !u!4 &1135818262 stripped
 Transform:
@@ -1837,10 +1827,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cedc7e95ded7e594994b44d37830086d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  timeofday: 0
   home: {fileID: 116705175}
   Action: Idle
-  Age: 30
+  Maturity: Child
+  Gender: Female
+  CanReproduce: 1
+  rabbitPrefab: {fileID: 618229309192869675, guid: 53a111e1ea33bb4408eb709bf0558bbb, type: 3}
+  Age: 2
 --- !u!1001 &1269069513
 PrefabInstance:
   m_ObjectHideFlags: 0
