@@ -21,29 +21,52 @@ public class FoxBehaviour : MonoBehaviour
     {
         agent = this.GetComponent<NavMeshAgent>();
 
-        tree = new BehaviourTree();                                         //Root Node
+        tree = new BehaviourTree();                                                 //Root Node
 
-        Selector FoxTree = new Selector("Fox");                             //  Fox (Selector)
+        Selector FoxTree = new Selector("Fox");                                  //  Fox (Selector)
 
-        Sequence Chase = new Sequence("Chase");                             //      Prey in Range (Sequence)
-        Leaf inRangeTarget = new Leaf("Target in Range?", TargetInRange);   //          Sensed Prey (Condition)
-        Selector sensedPrey = new Selector("Sensed Prey");                  //          Prey Sensed (Selector)
-        Sequence CanSeePrey = new Sequence("Can See Prey");                 //              Can See Prey (Sequenmce)
-        Leaf preyInSight = new Leaf("Prey in sight?", isPreyNotinSight);    //                  Is prey (not) in sight? (Condition)
-        Leaf goLastSeen = new Leaf("Go to last seen", gotoLastSeen);        //                  Go to last seen location (Action)
-        Leaf chasePrey = new Leaf("Chase Prey", ChasePrey);                 //              Chase Prey (Action)
-        Sequence Wonder = new Sequence("Wonder");                           //      Wonder (Sequence)
-        Leaf roam = new Leaf("Roam Freely", Roam);                          //          Roam (Action)
+        Sequence Chase = new Sequence("Chase");                                     //      Prey in Range (Sequence)
+        Leaf inRangeTarget = new Leaf("Target in Range?", TargetInRange);           //          Sensed Prey (Condition)
+        Selector sensedPrey = new Selector("Sensed Prey");                          //          Prey Sensed (Selector)
+        Sequence CanSeePrey = new Sequence("Can See Prey");                         //              Can See Prey (Sequenmce)
+        Leaf preyInSight = new Leaf("Prey in sight?", isPreyNotinSight);            //                  Is prey (not) in sight? (Condition)
+        Leaf goLastSeen = new Leaf("Go to last seen", gotoLastSeen);                //                  Go to last seen location (Action)
+
+        Selector preyClose = new Selector("Prey Close Enough");                     //              Prey Close enough to eat (Selector)
+        Sequence canEat = new Sequence("Can Eat Prey");                             //                  Prey Close enough to be eaten (Sequence)
+        Leaf PreyEatable = new Leaf("Is Prey Close enough to eat", isPreyEatable);  //                      Is prey close enough to eat (Condition)
+        Leaf EatPrey = new Leaf("Eat Prey", eatPrey);                               //                      Eat the Prey (Action)
+
+   
+        Leaf chasePrey = new Leaf("Chase Prey", ChasePrey);                         //                  Chase Prey (Action)
+
+
+        Sequence Wonder = new Sequence("Wonder");                                   //      Wonder (Sequence)
+        Leaf roam = new Leaf("Roam Freely", Roam);                                  //          Roam (Action)
 
         
+
+
         CanSeePrey.AddChild(preyInSight);
         CanSeePrey.AddChild(goLastSeen);
 
+        canEat.AddChild(PreyEatable);
+        canEat.AddChild(EatPrey);
+
+        preyClose.AddChild(canEat);
+        preyClose.AddChild(chasePrey);
+
         sensedPrey.AddChild(CanSeePrey);
-        sensedPrey.AddChild(chasePrey);
+        sensedPrey.AddChild(preyClose);
 
         Chase.AddChild(inRangeTarget);
         Chase.AddChild(sensedPrey);
+
+
+
+
+
+
 
         Wonder.AddChild(roam);
 
@@ -100,6 +123,21 @@ public class FoxBehaviour : MonoBehaviour
         return Node.Status.FAILED;
     }
 
+
+    public Node.Status isPreyEatable()
+    {
+        target = GetClosestTarget();
+
+        if (Vector3.Distance(this.transform.position, target.transform.position) < 2)
+        {
+            return Node.Status.SUCCESS;
+        }
+        return Node.Status.FAILED;
+    }
+
+
+
+
     public Node.Status isPreyNotinSight()
     {
         target = GetClosestTarget();
@@ -137,6 +175,14 @@ public class FoxBehaviour : MonoBehaviour
         return GoToLocation(target.transform.position);
     }
 
+    public Node.Status eatPrey()
+    {
+        target = GetClosestTarget();
+        target.SetActive(false);
+        print("Rabbit Eaten!");
+        return Node.Status.SUCCESS;
+    }
+
 
     public Node.Status ChasePrey()
     {
@@ -153,7 +199,7 @@ public class FoxBehaviour : MonoBehaviour
         }
         float lookAhead = targetDir.magnitude / (agent.speed + target.GetComponent<NavMeshAgent>().speed);
         lastSeen = target.transform.position;
-        return GoToLocation(target.transform.position + target.transform.forward * lookAhead * 2.0f);
+        return GoToLocation(target.transform.position + target.transform.forward * lookAhead * 5.0f);
     }
 
 
