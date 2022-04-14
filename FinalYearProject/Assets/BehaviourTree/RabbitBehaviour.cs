@@ -8,9 +8,16 @@ public class RabbitBehaviour : MonoBehaviour
     BehaviourTree tree;
     NavMeshAgent agent;
     GameObject target;
-    public float timeofday;
+    float timeofday;
     public GameObject home;
     public string Action = "Idle";
+    public string Maturity = "Child";
+    public string Gender;
+    public bool CanReproduce = true;
+    int reproductionCoolDown = 0;
+
+    public GameObject rabbitPrefab;
+
     GameObject SceneManager;
 
 
@@ -28,34 +35,49 @@ public class RabbitBehaviour : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+
         SceneManager = GameObject.Find("SceneManagement");
 
         agent = this.GetComponent<NavMeshAgent>();
 
-        tree = new BehaviourTree();                                         //Root Node
+        tree = new BehaviourTree();                                             //Root Node
 
 
-        Selector RabbitTree = new Selector("Rabbit");                       //  Rabbit (Selector)
+        Selector RabbitTree = new Selector("Rabbit");                           //  Rabbit (Selector)
         
-        Sequence Hide = new Sequence("Hide");                               //      Preditor in Radius (Sequence)
-        Leaf inRangeTarget = new Leaf("Target in Range?", TargetInRange);   //          Sensed Enemy (Condition)
-        Selector Flee = new Selector("Flee");                               //          Flee (Selector)
-        Sequence GoHome = new Sequence("Go Home");                          //              GoHome (Sequence)
-        Leaf canGoHome = new Leaf("Can go Home?", CanGoHome);               //                  Can Go Home (Condition)
-        Leaf goToHome = new Leaf("Go To Home", FleeHome);                   //                  Flee Home (Action)
-        Leaf goToHide = new Leaf("Go to Hide", GoToHide);                   //              Evade (Action)
+        Sequence Hide = new Sequence("Hide");                                   //      Preditor in Radius (Sequence)
+        Leaf inRangeTarget = new Leaf("Target in Range?", TargetInRange);       //          Sensed Enemy (Condition)
+        Selector Flee = new Selector("Flee");                                   //          Flee (Selector)
+        Sequence GoHome = new Sequence("Go Home");                              //              GoHome (Sequence)
+        Leaf canGoHome = new Leaf("Can go Home?", CanGoHome);                   //                  Can Go Home (Condition)
+        Leaf goToHome = new Leaf("Go To Home", FleeHome);                       //                  Flee Home (Action)
+        Leaf goToHide = new Leaf("Go to Hide", GoToHide);                       //              Evade (Action)
 
-        Sequence sleep = new Sequence("if Night Time");                     //      If night time (Sequence)
-        Leaf IsNightTime = new Leaf("Check if Night", isNightTime);         //          Check if Night time (condition)    
-        Leaf ReturnHome = new Leaf("Return Home", returnHome);              //          Go Home(Action)
-        
-        
-        
-        Sequence Wonder = new Sequence("Wonder");                           //      Wonder (Sequence)
-        Leaf roam = new Leaf("Roam Freely", Roam);                          //          Roam (Action)
+        Sequence sleep = new Sequence("if Night Time");                         //      If night time (Sequence)
+        Leaf IsNightTime = new Leaf("Check if Night", isNightTime);             //          Check if Night time (condition)    
+        Leaf ReturnHome = new Leaf("Return Home", returnHome);                  //          Go Home(Action)
 
+        Sequence reprodcution = new Sequence("Reproduction");                    //      Reproduce (Sequence)
+        Leaf CheckCanReproduce = new Leaf("Check if can reproduce", canReproduce);   //          Check if can reproduce (condition)    
+        Leaf reproduce = new Leaf("Produce Child", Reproduce);                  //          reproduce(Action)
 
 
+        Sequence Wonder = new Sequence("Wonder");                               //      Wonder (Sequence)
+        Leaf roam = new Leaf("Roam Freely", Roam);                              //          Roam (Action)
+
+
+        if (Age <= 1)
+        {
+            Maturity = "Child";
+            CanReproduce = false;
+        }
+        else if(Age <= 10){
+            Maturity = "Adult";
+        }
+        else {
+            Maturity = "Elder";
+            CanReproduce = false;
+        }
 
 
 
@@ -74,16 +96,33 @@ public class RabbitBehaviour : MonoBehaviour
         sleep.AddChild(IsNightTime);
         sleep.AddChild(ReturnHome);
 
+        reprodcution.AddChild(CheckCanReproduce);
+        reprodcution.AddChild(reproduce);
+
         Wonder.AddChild(roam);
 
         RabbitTree.AddChild(Hide);
         RabbitTree.AddChild(sleep);
+        RabbitTree.AddChild(reprodcution);
         RabbitTree.AddChild(Wonder);
 
         tree.AddChild(RabbitTree);
 
         tree.PrintTree();
 
+
+        if (Age <= 1)
+        {
+            Maturity = "Child";
+        }
+        else if (Age <= 10)
+        {
+            Maturity = "Adult";
+        }
+        else
+        {
+            Maturity = "Elder";
+        }
 
     }
 
@@ -138,6 +177,27 @@ public class RabbitBehaviour : MonoBehaviour
             return Node.Status.SUCCESS;
         }
         return Node.Status.FAILED;
+    }
+
+    public Node.Status canReproduce()
+    {
+        if (CanReproduce && Gender == "Female")
+        {
+            return Node.Status.SUCCESS;
+        }
+        return Node.Status.FAILED;
+    }
+
+    public Node.Status Reproduce()
+    {
+        GameObject Child = (GameObject)Instantiate(rabbitPrefab, this.transform.position, Quaternion.identity);
+        Child.GetComponent<RabbitBehaviour>().setAge(0);
+        Child.GetComponent<RabbitBehaviour>().setGender("Male");
+        Child.GetComponent<RabbitBehaviour>().setHome(home);
+        Child.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+        CanReproduce = false;
+        reproductionCoolDown = 2;
+        return Node.Status.SUCCESS;
     }
 
 
@@ -301,6 +361,10 @@ public class RabbitBehaviour : MonoBehaviour
     void Update()
     {
         treeStatus = tree.Process();
+
+
+
+
     }
 
 
@@ -309,8 +373,63 @@ public class RabbitBehaviour : MonoBehaviour
         return SceneManager.GetComponent<LightingManager>().getTime();
     }
 
+    void setAge(int a)
+    {
+        Age = a;
+    }
+    
+    void setGender(string g)
+    {
+        Gender = g;
+    }
+
+    void setHome(GameObject h)
+    {
+        home = h;
+    }
+
     public void incrementAge()
     {
         Age++;
+
+        if (reproductionCoolDown > 0)
+        {
+            reproductionCoolDown--;
+            this.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+        }
+
+        if (Age <= 1)
+        {
+            Maturity = "Child";
+            CanReproduce = false;
+        }
+        else if (Age <= 10)
+        {
+            Maturity = "Adult";
+            if (reproductionCoolDown == 0)
+            {
+                CanReproduce=true;
+            }
+            this.transform.localScale = new Vector3(1f, 1f, 1f);
+        }
+        else
+        {
+            Maturity = "Elder";
+            CanReproduce = false;
+        }
+
+        if (Age > 12)
+        {
+            float randValue = Random.value;
+            
+            if (randValue < (((1 / (Age - 12)) * 0.5)))
+            {
+                return;
+            }
+            else
+            {
+                this.gameObject.SetActive(false);
+            }
+        }
     }
 }

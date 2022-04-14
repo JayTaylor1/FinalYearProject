@@ -13,10 +13,10 @@ GameObject:
   - component: {fileID: 618229309192869678}
   - component: {fileID: 618229309192869677}
   - component: {fileID: 618229309192869676}
-  - component: {fileID: 618229309192869681}
+  - component: {fileID: 181785608}
   m_Layer: 0
   m_Name: Rabbit
-  m_TagString: Untagged
+  m_TagString: rabbit
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -120,7 +120,7 @@ NavMeshAgent:
   m_BaseOffset: 1
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
---- !u!114 &618229309192869681
+--- !u!114 &181785608
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -129,7 +129,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 618229309192869675}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7567f205b4f9b6543adbf316412f3ce8, type: 3}
+  m_Script: {fileID: 11500000, guid: cedc7e95ded7e594994b44d37830086d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  target: {fileID: 0}
+  home: {fileID: 0}
+  Action: Idle
+  Maturity: Child
+  Gender: Male
+  CanReproduce: 1
+  rabbitPrefab: {fileID: 618229309192869675}
+  Age: 0
