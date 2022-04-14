@@ -14,6 +14,10 @@ public class RabbitBehaviour : MonoBehaviour
     GameObject SceneManager;
 
 
+    private int DayofCreation = 0;
+    public int Age = 0;
+
+
     public enum ActionState {IDLE, WORKING};
     ActionState state = ActionState.IDLE;
 
@@ -297,12 +301,16 @@ public class RabbitBehaviour : MonoBehaviour
     void Update()
     {
         treeStatus = tree.Process();
-        print(getTimeofDay());
     }
 
 
     float getTimeofDay()
     {
         return SceneManager.GetComponent<LightingManager>().getTime();
+    }
+
+    public void incrementAge()
+    {
+        Age++;
     }
 }

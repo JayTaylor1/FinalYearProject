@@ -9,6 +9,10 @@ public class LightingManager : MonoBehaviour
     [SerializeField] private LightingPreset Preset;
 
     [SerializeField, Range(0, 24)] private float TimeOfDay;
+    public int Day;
+
+
+    private int previousDay = 0;
 
     private void Update()
     {
@@ -19,8 +23,20 @@ public class LightingManager : MonoBehaviour
         if (Application.isPlaying)
         {
             TimeOfDay += Time.deltaTime;
-            TimeOfDay %= 24;
-            UpdateLighting(TimeOfDay / 24f);
+            Day = (int)(TimeOfDay / 24);
+
+            if (((int)TimeOfDay % 24 == 0) && (Day != previousDay))
+            {
+                newDay();
+                //print("New Day");
+                previousDay = Day;
+            }
+            
+
+
+            //TimeOfDay %= 24;
+            UpdateLighting((TimeOfDay % 24) / 24f);
+            
         }
         
     }
@@ -70,9 +86,23 @@ public class LightingManager : MonoBehaviour
 
     public float getTime()
     {
-        return TimeOfDay;
+        return TimeOfDay % 24;
     }
 
+    public int getDay()
+    {
+        return Day;
+    }
+
+    public void newDay()
+    {
+        GameObject[] rabbits = GameObject.FindGameObjectsWithTag("rabbit");
+        for (int i = 0; i < rabbits.Length; i++)
+        {
+            rabbits[i].GetComponent<RabbitBehaviour>().incrementAge();
+        }
+
+    }
 
 
 }

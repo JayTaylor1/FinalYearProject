@@ -8,7 +8,11 @@ public class FoxBehaviour : MonoBehaviour
     BehaviourTree tree;
     NavMeshAgent agent;
     GameObject target;
+    public GameObject home;
     public string Action = "Idle";
+
+    GameObject SceneManager;
+    public float timeofday;
 
     public enum ActionState {IDLE, WORKING};
     ActionState state = ActionState.IDLE;
@@ -19,6 +23,7 @@ public class FoxBehaviour : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        SceneManager = GameObject.Find("SceneManagement");
         agent = this.GetComponent<NavMeshAgent>();
 
         tree = new BehaviourTree();                                                 //Root Node
@@ -39,6 +44,10 @@ public class FoxBehaviour : MonoBehaviour
 
    
         Leaf chasePrey = new Leaf("Chase Prey", ChasePrey);                         //                  Chase Prey (Action)
+
+        Sequence sleep = new Sequence("if Night Time");                             //      If night time (Sequence)
+        Leaf IsNightTime = new Leaf("Check if Night", isNightTime);                 //          Check if Night time (condition)    
+        Leaf ReturnHome = new Leaf("Return Home", returnHome);                      //          Go Home(Action) 
 
 
         Sequence Wonder = new Sequence("Wonder");                                   //      Wonder (Sequence)
@@ -63,7 +72,8 @@ public class FoxBehaviour : MonoBehaviour
         Chase.AddChild(sensedPrey);
 
 
-
+        sleep.AddChild(IsNightTime);
+        sleep.AddChild(ReturnHome);
 
 
 
@@ -71,6 +81,7 @@ public class FoxBehaviour : MonoBehaviour
         Wonder.AddChild(roam);
 
         FoxTree.AddChild(Chase);
+        FoxTree.AddChild(sleep);
         FoxTree.AddChild(Wonder);
 
         tree.AddChild(FoxTree);
@@ -119,6 +130,15 @@ public class FoxBehaviour : MonoBehaviour
             Action = "Idle";
             agent.isStopped = true;
             return Node.Status.FAILED;
+        }
+        return Node.Status.FAILED;
+    }
+
+    public Node.Status isNightTime()
+    {
+        if (getTimeofDay() >= 22f || getTimeofDay() <= 4f)
+        {
+            return Node.Status.SUCCESS;
         }
         return Node.Status.FAILED;
     }
@@ -221,6 +241,26 @@ public class FoxBehaviour : MonoBehaviour
         return GoToLocation(targetWorld);
     }
 
+    public Node.Status returnHome()
+    {
+        Action = "Going Home";
+        /*
+        if (GoToLocation(home.transform.position) == Node.Status.SUCCESS)
+        {
+            this.gameObject.SetActive(false);
+            return Node.Status.SUCCESS;
+        }
+        return Node.Status.SUCCESS;
+        */
+        GoToLocation(home.transform.position);
+        float distanceToTarget = Vector3.Distance(home.transform.position, this.transform.position);
+        if (distanceToTarget < 2)
+        {
+            this.gameObject.SetActive(false);
+        }
+        return Node.Status.SUCCESS;
+    }
+
 
     Node.Status GoToLocation(Vector3 destination)
     {
@@ -250,5 +290,10 @@ public class FoxBehaviour : MonoBehaviour
 
         treeStatus = tree.Process();
 
+    }
+
+    float getTimeofDay()
+    {
+        return SceneManager.GetComponent<LightingManager>().getTime();
     }
 }
