@@ -8,8 +8,10 @@ public class RabbitBehaviour : MonoBehaviour
     BehaviourTree tree;
     NavMeshAgent agent;
     GameObject target;
+    public float timeofday;
     public GameObject home;
     public string Action = "Idle";
+    GameObject SceneManager;
 
 
     public enum ActionState {IDLE, WORKING};
@@ -17,10 +19,13 @@ public class RabbitBehaviour : MonoBehaviour
 
     Node.Status treeStatus = Node.Status.RUNNING;
 
+    //print((int)TimeOfDay + ":00");
 
     // Start is called before the first frame update
     void Start()
     {
+        SceneManager = GameObject.Find("SceneManagement");
+
         agent = this.GetComponent<NavMeshAgent>();
 
         tree = new BehaviourTree();                                         //Root Node
@@ -36,8 +41,21 @@ public class RabbitBehaviour : MonoBehaviour
         Leaf goToHome = new Leaf("Go To Home", FleeHome);                   //                  Flee Home (Action)
         Leaf goToHide = new Leaf("Go to Hide", GoToHide);                   //              Evade (Action)
 
+        Sequence sleep = new Sequence("if Night Time");                     //      If night time (Sequence)
+        Leaf IsNightTime = new Leaf("Check if Night", isNightTime);         //          Check if Night time (condition)    
+        Leaf ReturnHome = new Leaf("Return Home", returnHome);              //          Go Home(Action)
+        
+        
+        
         Sequence Wonder = new Sequence("Wonder");                           //      Wonder (Sequence)
         Leaf roam = new Leaf("Roam Freely", Roam);                          //          Roam (Action)
+
+
+
+
+
+
+
 
 
         GoHome.AddChild(canGoHome);
@@ -48,10 +66,14 @@ public class RabbitBehaviour : MonoBehaviour
 
         Hide.AddChild(inRangeTarget);
         Hide.AddChild(Flee);
-        
+
+        sleep.AddChild(IsNightTime);
+        sleep.AddChild(ReturnHome);
+
         Wonder.AddChild(roam);
 
         RabbitTree.AddChild(Hide);
+        RabbitTree.AddChild(sleep);
         RabbitTree.AddChild(Wonder);
 
         tree.AddChild(RabbitTree);
@@ -64,7 +86,7 @@ public class RabbitBehaviour : MonoBehaviour
     public GameObject GetClosestTarget()
     {
         GameObject[] Preditors = GameObject.FindGameObjectsWithTag("fox");
-        print(Preditors.Length);
+        //print(Preditors.Length);
         if (Preditors.Length == 0)
         {
             return null;
@@ -105,6 +127,16 @@ public class RabbitBehaviour : MonoBehaviour
         return Node.Status.FAILED;
     }
 
+    public Node.Status isNightTime()
+    {
+        if (getTimeofDay() >= 22f || getTimeofDay()<= 4f)
+        {
+            return Node.Status.SUCCESS;
+        }
+        return Node.Status.FAILED;
+    }
+
+
     //Can go home if facing towards home and there is no preditors infront
     public Node.Status CanGoHome()
     {
@@ -136,15 +168,47 @@ public class RabbitBehaviour : MonoBehaviour
         return GoToLocation(target.transform.position);
     }
 
-    public Node.Status FleeHome()
+    public Node.Status returnHome()
     {
-        Action = "Fleeing Home";
+        Action = "Going Home";
+        /*
         if (GoToLocation(home.transform.position) == Node.Status.SUCCESS)
         {
             this.gameObject.SetActive(false);
             return Node.Status.SUCCESS;
         }
-        return Node.Status.RUNNING;
+        return Node.Status.SUCCESS;
+        */
+        GoToLocation(home.transform.position);
+        float distanceToTarget = Vector3.Distance(home.transform.position, this.transform.position);
+        if (distanceToTarget < 2)
+        {
+            this.gameObject.SetActive(false);
+        }
+        return Node.Status.SUCCESS;
+    }
+
+
+
+
+    public Node.Status FleeHome()
+    {
+        Action = "Fleeing Home";
+        /*
+        if (GoToLocation(home.transform.position) == Node.Status.SUCCESS)
+        {
+            this.gameObject.SetActive(false);
+            return Node.Status.SUCCESS;
+        }
+        return Node.Status.SUCCESS;
+        */
+        GoToLocation(home.transform.position);
+        float distanceToTarget = Vector3.Distance(home.transform.position, this.transform.position);
+        if (distanceToTarget < 2)
+        {
+            this.gameObject.SetActive(false);
+        }
+        return Node.Status.SUCCESS;
     }
 
 
@@ -185,7 +249,7 @@ public class RabbitBehaviour : MonoBehaviour
     Vector3 wanderTarget = Vector3.zero;
     public Node.Status Roam()
     {
-        //Action = "Roaming";
+        Action = "Roaming";
         float wanderRadius = 10;
         float wanderDistance = 10;
         float wanderJitter = 1;
@@ -205,6 +269,7 @@ public class RabbitBehaviour : MonoBehaviour
 
     Node.Status GoToLocation(Vector3 destination)
     {
+        /*
         float distanceToTarget = Vector3.Distance(destination, this.transform.position);
         if(state == ActionState.IDLE)
         {
@@ -222,6 +287,9 @@ public class RabbitBehaviour : MonoBehaviour
             return Node.Status.SUCCESS;
         }
         return Node.Status.RUNNING;
+        */
+        agent.SetDestination(destination);
+        return Node.Status.SUCCESS;
     }
 
 
@@ -229,5 +297,12 @@ public class RabbitBehaviour : MonoBehaviour
     void Update()
     {
         treeStatus = tree.Process();
+        print(getTimeofDay());
+    }
+
+
+    float getTimeofDay()
+    {
+        return SceneManager.GetComponent<LightingManager>().getTime();
     }
 }
