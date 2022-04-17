@@ -5,14 +5,28 @@ using UnityEngine.AI;
 
 public class FoxBehaviour : MonoBehaviour
 {
+    //public float Speed;
+    //public float Sense;
+
+
     BehaviourTree tree;
     NavMeshAgent agent;
     GameObject target;
-    public GameObject home;
-    public string Action = "Idle";
+    public GameObject home = null;
+    public string Action;
+    public string Gender;
+    public bool isDead = false;
+    public int Hunger = 100;
+
+    public bool CanReproduce = true;
+    public string Maturity;
+    public int Age;
+    public int reproductionCoolDown;
+    public GameObject mate;
+    public GameObject foxPrefab;
 
     GameObject SceneManager;
-    public float timeofday;
+    //public float timeofday;
 
     public enum ActionState {IDLE, WORKING};
     ActionState state = ActionState.IDLE;
@@ -47,7 +61,16 @@ public class FoxBehaviour : MonoBehaviour
 
         Sequence sleep = new Sequence("if Night Time");                             //      If night time (Sequence)
         Leaf IsNightTime = new Leaf("Check if Night", isNightTime);                 //          Check if Night time (condition)    
-        Leaf ReturnHome = new Leaf("Return Home", returnHome);                      //          Go Home(Action) 
+        Leaf ReturnHome = new Leaf("Return Home", returnHome);                      //          Go Home(Action)
+                                                                                    //          
+        Sequence reprodcution = new Sequence("Reproduction");                       //      Reproduce (Sequence)
+        Leaf CheckCanReproduce = new Leaf("Check if can reproduce", canReproduce);  //          Check if can reproduce (condition)
+
+        Selector ProduceChild = new Selector("Produce Child");                      //          Produce Child (Selector)
+        Sequence MateInRange = new Sequence("MateInRange");                         //              Mate In Range (Sequence)
+        Leaf IsMateInRange = new Leaf("Is mate close enough", isMateInRange);       //                  Is mate Close enough to reproduce (condition)
+        Leaf reproduce = new Leaf("Produce Child", Reproduce);                      //                  reproduce(Action)
+        Leaf GoToMate = new Leaf("Go To Mate", goToMate);                           //              Go To Mate (Action)
 
 
         Sequence Wonder = new Sequence("Wonder");                                   //      Wonder (Sequence)
@@ -75,13 +98,21 @@ public class FoxBehaviour : MonoBehaviour
         sleep.AddChild(IsNightTime);
         sleep.AddChild(ReturnHome);
 
+        MateInRange.AddChild(IsMateInRange);
+        MateInRange.AddChild(reproduce);
 
+        ProduceChild.AddChild(MateInRange);
+        ProduceChild.AddChild(GoToMate);
+
+        reprodcution.AddChild(CheckCanReproduce);
+        reprodcution.AddChild(ProduceChild);
 
 
         Wonder.AddChild(roam);
 
         FoxTree.AddChild(Chase);
         FoxTree.AddChild(sleep);
+        FoxTree.AddChild(reprodcution);
         FoxTree.AddChild(Wonder);
 
         tree.AddChild(FoxTree);
@@ -89,6 +120,25 @@ public class FoxBehaviour : MonoBehaviour
 
         tree.PrintTree();
 
+        if (Age <= 1)
+        {
+            Maturity = "Child";
+            CanReproduce = false;
+        }
+        else if (Age <= 12)
+        {
+            Maturity = "Adult";
+        }
+        else
+        {
+            Maturity = "Elder";
+            CanReproduce = false;
+        }
+
+        if (home == null)
+        {   
+            findNewHome();
+        }
 
     }
 
@@ -125,12 +175,14 @@ public class FoxBehaviour : MonoBehaviour
             Action = "Chasing";
             return Node.Status.SUCCESS;
         }
+        /*
         else if (Action == "Chasing")
         {
             Action = "Idle";
             agent.isStopped = true;
             return Node.Status.FAILED;
         }
+        */
         return Node.Status.FAILED;
     }
 
@@ -146,9 +198,14 @@ public class FoxBehaviour : MonoBehaviour
 
     public Node.Status isPreyEatable()
     {
-        target = GetClosestTarget();
+        //target = GetClosestTarget();
+        if (target == null)
+        {
+            return Node.Status.FAILED;
+        }
 
-        if (Vector3.Distance(this.transform.position, target.transform.position) < 2)
+
+        if (Vector3.Distance(this.transform.position, target.transform.position) <= 2)
         {
             return Node.Status.SUCCESS;
         }
@@ -160,14 +217,13 @@ public class FoxBehaviour : MonoBehaviour
 
     public Node.Status isPreyNotinSight()
     {
-        target = GetClosestTarget();
+        //target = GetClosestTarget();
         if (target == null)
         {
             return Node.Status.SUCCESS;
         }
         if (Vector3.Distance(this.transform.position, target.transform.position) > 10)
         {
-
             Vector3 targetDir = target.transform.position - this.transform.position;
             var ray = new Ray(this.transform.position, targetDir.normalized);
             RaycastHit hit;
@@ -184,6 +240,116 @@ public class FoxBehaviour : MonoBehaviour
 
     }
 
+
+    public Node.Status canReproduce()
+    {
+        //mate;
+        //mate = null;
+        if (!CanReproduce && Hunger >= 50f)
+        {
+            mate = null;
+            return Node.Status.FAILED;
+        }
+        GameObject[] foxs;
+        if (Gender == "Female")
+        {
+            mate = null;
+            foxs = GameObject.FindGameObjectsWithTag("fox");
+
+            float dist = Mathf.Infinity;
+            GameObject chosenFox = null;
+
+            for (int i = 0; i < foxs.Length; i++)
+            {
+                if (foxs[i].GetComponent<FoxBehaviour>().getGender() == "Male" && foxs[i].GetComponent<FoxBehaviour>().getCanReproduce())
+                {
+                    if (Vector3.Distance(this.transform.position, foxs[i].transform.position) < dist)
+                    {
+                        chosenFox = foxs[i];
+                        dist = Vector3.Distance(this.transform.position, foxs[i].transform.position);
+                    }
+                }
+
+            }
+
+            if (dist > 10)
+            {
+                return Node.Status.FAILED;
+            }
+
+
+            if (chosenFox == null)
+            {
+                return Node.Status.FAILED;
+            }
+            mate = chosenFox;
+            mate.GetComponent<FoxBehaviour>().setMate(this.gameObject);
+            return Node.Status.SUCCESS;
+        }
+
+
+        if (Gender == "Male" && mate != null)
+        {
+            float distanceToMate = Vector3.Distance(mate.transform.position, this.transform.position);
+            if (distanceToMate > 10)
+            {
+                mate = null;
+                return Node.Status.FAILED;
+            }
+            return Node.Status.SUCCESS;
+        }
+        return Node.Status.FAILED;
+
+    }
+
+
+    public Node.Status isMateInRange()
+    {
+        float distanceToMate = Vector3.Distance(mate.transform.position, this.transform.position);
+        if (distanceToMate < 2)
+        {
+            return Node.Status.SUCCESS;
+        }
+        return Node.Status.FAILED;
+    }
+
+
+    public Node.Status Reproduce()
+    {
+        if (Gender == "Female")
+        {
+            GameObject Child = (GameObject)Instantiate(foxPrefab, this.transform.position, Quaternion.identity);
+            Child.GetComponent<FoxBehaviour>().setAge(0);
+            if (Random.value < .5)
+            {
+                Child.GetComponent<FoxBehaviour>().setGender("Male");
+            }
+            else
+            {
+                Child.GetComponent<FoxBehaviour>().setGender("Female");
+            }
+
+            Child.GetComponent<FoxBehaviour>().setHome(home);
+            Child.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+            CanReproduce = false;
+            reproductionCoolDown = 4;
+            mate.GetComponent<FoxBehaviour>().setCanReproduce(false);
+            mate.GetComponent<FoxBehaviour>().setReproductionCooldown(4);
+            Hunger -= 20;
+            SceneManager.GetComponent<LightingManager>().addAnimal(Child);
+        }
+        return Node.Status.SUCCESS;
+    }
+
+    public Node.Status goToMate()
+    {
+        if (mate != null)
+        {
+            return GoToLocation(mate.transform.position);
+        }
+        return Node.Status.FAILED;
+    }
+
     Vector3 lastSeen = Vector3.zero;
     public Node.Status gotoLastSeen()
     {
@@ -197,15 +363,21 @@ public class FoxBehaviour : MonoBehaviour
 
     public Node.Status eatPrey()
     {
-        target = GetClosestTarget();
-        target.SetActive(false);
+        //target = GetClosestTarget();
+        target.GetComponent<RabbitBehaviour>().Die();
+        target = null;
         print("Rabbit Eaten!");
+        Hunger += 40;
         return Node.Status.SUCCESS;
     }
 
 
     public Node.Status ChasePrey()
     {
+        if (target == null || Vector3.Distance(target.transform.position, this.transform.position) > 10)
+        {
+            return Node.Status.FAILED;
+        }
         Action = "In Pursuit";
         Vector3 targetDir = target.transform.position - this.transform.position;
         float relativeHeading = Vector3.Angle(this.transform.forward, this.transform.TransformVector(target.transform.forward));
@@ -223,9 +395,45 @@ public class FoxBehaviour : MonoBehaviour
     }
 
 
+
+    Vector3 previousTargetPosition = Vector3.zero;
+    float timeTaken = 0;
     Vector3 wanderTarget = Vector3.zero;
     public Node.Status Roam()
     {
+        Action = "Roaming";
+        float range = 20f;
+
+        if (previousTargetPosition == Vector3.zero || Vector3.Distance(this.transform.position, previousTargetPosition) > range || Vector3.Distance(this.transform.position, previousTargetPosition) <= 2 || timeTaken > 5f)
+        {
+            timeTaken = 0;
+            Vector2 circle = Random.insideUnitCircle;
+            Vector3 Circle3D = new Vector3(circle.x, 0, circle.y);
+            previousTargetPosition = this.transform.position + Circle3D * range;
+            NavMeshPath path = new NavMeshPath();
+            while (!agent.CalculatePath(previousTargetPosition, path))
+            {
+                //print("Cant Reach");
+                circle = Random.insideUnitCircle;
+                Circle3D = new Vector3(circle.x, 0, circle.y);
+                previousTargetPosition = this.transform.position + Circle3D * range;
+            }
+        }
+
+
+
+
+        if (Vector3.Distance(this.transform.position, previousTargetPosition) <= range)
+        {
+            timeTaken += Time.deltaTime;
+            if (timeTaken > 5f)
+            {
+                previousTargetPosition = Vector3.zero;
+            }
+            return GoToLocation(previousTargetPosition);
+        }
+        return Node.Status.FAILED;
+        /*
         Action = "Roaming";
         float wanderRadius = 10;
         float wanderDistance = 10;
@@ -239,24 +447,19 @@ public class FoxBehaviour : MonoBehaviour
         Vector3 targetWorld = this.gameObject.transform.InverseTransformVector(targetLocal);
 
         return GoToLocation(targetWorld);
+        */
     }
 
     public Node.Status returnHome()
     {
         Action = "Going Home";
-        /*
-        if (GoToLocation(home.transform.position) == Node.Status.SUCCESS)
-        {
-            this.gameObject.SetActive(false);
-            return Node.Status.SUCCESS;
-        }
-        return Node.Status.SUCCESS;
-        */
+
         GoToLocation(home.transform.position);
         float distanceToTarget = Vector3.Distance(home.transform.position, this.transform.position);
         if (distanceToTarget < 2)
         {
-            this.gameObject.SetActive(false);
+            Action = "Resting";
+            home.GetComponent<home>().enterAnimal(this.gameObject);
         }
         return Node.Status.SUCCESS;
     }
@@ -264,6 +467,7 @@ public class FoxBehaviour : MonoBehaviour
 
     Node.Status GoToLocation(Vector3 destination)
     {
+        /*
         float distanceToTarget = Vector3.Distance(destination, this.transform.position);
         if(state == ActionState.IDLE)
         {
@@ -281,6 +485,9 @@ public class FoxBehaviour : MonoBehaviour
             return Node.Status.SUCCESS;
         }
         return Node.Status.RUNNING;
+        */
+        agent.SetDestination(destination);
+        return Node.Status.SUCCESS;
     }
 
 
@@ -296,4 +503,186 @@ public class FoxBehaviour : MonoBehaviour
     {
         return SceneManager.GetComponent<LightingManager>().getTime();
     }
+
+    public void decrementHunger()
+    {
+        Hunger--;
+        if (Hunger <= 0)
+        {
+            Die();
+        }
+    }
+
+    public void Die()
+    {
+        SceneManager.GetComponent<LightingManager>().removeAnimal(this.gameObject);
+        home.GetComponent<home>().removeOccupant(this.gameObject);
+        isDead = true;
+        this.gameObject.SetActive(false);
+    }
+
+    public string getAction()
+    {
+        return Action;
+    }
+
+
+
+    public void incrementAge()
+    {
+        Age++;
+
+        if (reproductionCoolDown > 0)
+        {
+            reproductionCoolDown--;
+            this.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+        }
+
+        if (Age <= 1)
+        {
+            Maturity = "Child";
+            CanReproduce = false;
+        }
+        else if (Age <= 12)
+        {
+            Maturity = "Adult";
+            if (reproductionCoolDown == 0)
+            {
+                CanReproduce = true;
+            }
+            this.transform.localScale = new Vector3(1f, 1f, 1f);
+        }
+        else
+        {
+            Maturity = "Elder";
+            CanReproduce = false;
+        }
+
+        if (Age == 4)
+        {
+            findNewHome();
+        }
+
+        if (Age > 14)
+        {
+            float randValue = Random.value;
+
+            if (randValue < (((1 / (Age - 12)) * 0.5)))
+            {
+                return;
+            }
+            else
+            {
+                Die();
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+
+    public GameObject findNewHome()
+    {
+
+        print("Rehoming");
+        List<GameObject> foxhomes = new List<GameObject>();
+        
+
+        print(home);
+        if (home == null)
+        { 
+            foxhomes.AddRange(GameObject.FindGameObjectsWithTag("foxhome"));
+            int randomNum = Random.Range(0, foxhomes.Count - 1);
+            home = foxhomes[randomNum];
+            home.GetComponent<home>().addOccupant(this.gameObject);
+            print(home);
+            return home;
+        }
+
+        foxhomes = SceneManager.GetComponent<LightingManager>().getFoxHomes();
+
+        for (int i = 0; i < foxhomes.Count; i++)
+        {
+            //print(foxhomes[i].GetComponent<home>().getOccupantCount());
+            if (foxhomes[i].GetComponent<home>().getOccupantCount() == 0)
+            {
+                home.GetComponent<home>().removeOccupant(this.gameObject);
+                home = foxhomes[i];
+                home.GetComponent<home>().addOccupant(this.gameObject);                
+                return home;
+
+            }
+
+            if (foxhomes[i].GetComponent<home>().getOccupantCount() == 1)
+            {
+                if (Gender == "Male" && foxhomes[i].GetComponent<home>().getOccupants()[0].GetComponent<FoxBehaviour>().getGender() == "Female")
+                {
+                    home.GetComponent<home>().removeOccupant(this.gameObject);
+                    home = foxhomes[i];
+                    home.GetComponent<home>().addOccupant(this.gameObject);
+                    return home;
+                }
+
+                if (Gender == "Female" && foxhomes[i].GetComponent<home>().getOccupants()[0].GetComponent<FoxBehaviour>().getGender() == "Male")
+                {
+                    home.GetComponent<home>().removeOccupant(this.gameObject);
+                    home = foxhomes[i];
+                    home.GetComponent<home>().addOccupant(this.gameObject);
+                    return home;
+                }
+            }
+
+            if (home.GetComponent<home>().getOccupantCount() > 5)
+            {
+                //Create New Home
+            }
+        }
+        return null;
+    }
+
+    public string getGender()
+    {
+        return Gender;
+    }
+
+    public void setMate(GameObject m)
+    {
+        mate = m;
+    }
+
+    public bool getCanReproduce()
+    {
+        return CanReproduce;
+    }
+
+    public void setCanReproduce(bool cr)
+    {
+        CanReproduce = cr;
+    }
+
+    void setAge(int a)
+    {
+        Age = a;
+    }
+
+    void setGender(string g)
+    {
+        Gender = g;
+    }
+
+    void setHome(GameObject h)
+    {
+        home = h;
+    }
+
+    public void setReproductionCooldown(int cd)
+    {
+        reproductionCoolDown = cd;
+    }
+
 }

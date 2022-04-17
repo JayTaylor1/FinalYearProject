@@ -9,9 +9,21 @@ public class LightingManager : MonoBehaviour
     [SerializeField] private LightingPreset Preset;
 
     [SerializeField, Range(0, 24)] private float TimeOfDay;
+
+
+
+    List<GameObject> rabbits = new List<GameObject>();
+    List<GameObject> foxs = new List<GameObject>();
+    List<GameObject> foxhomes = new List<GameObject>();
+    List<GameObject> rabbithomes = new List<GameObject>();
+
+    public int RabbitCount;
+    public int FoxCount;
+
     public int Day;
     private bool isnewDawn = true;
 
+    public float secondsPerHour;
 
 
 
@@ -21,16 +33,27 @@ public class LightingManager : MonoBehaviour
 
     public int currentHour = 0;
 
+    private void Start()
+    {
+        rabbits.AddRange(GameObject.FindGameObjectsWithTag("rabbit"));
+        foxs.AddRange(GameObject.FindGameObjectsWithTag("fox"));
+        foxhomes.AddRange(GameObject.FindGameObjectsWithTag("foxhome"));
+        rabbithomes.AddRange(GameObject.FindGameObjectsWithTag("rabbithome"));
+
+    }
 
     private void Update()
     {
+        RabbitCount = rabbits.Count;
+        FoxCount = foxs.Count;
+
         if (Preset == null)
         {
             return;
         }
         if (Application.isPlaying)
         {
-            TimeOfDay += Time.deltaTime;
+            TimeOfDay += Time.deltaTime / secondsPerHour;
             Day = (int)(TimeOfDay / 24);
 
             if (((int)TimeOfDay % 24 == 0) && (Day != previousDay))
@@ -131,24 +154,38 @@ public class LightingManager : MonoBehaviour
 
     public void newDay()
     {
-        GameObject[] rabbits = GameObject.FindGameObjectsWithTag("rabbit");
-        for (int i = 0; i < rabbits.Length; i++)
+        //GameObject[] rabbits = GameObject.FindGameObjectsWithTag("rabbit");
+        for (int i = 0; i < rabbits.Count; i++)
         {
             rabbits[i].GetComponent<RabbitBehaviour>().incrementAge();
         }
-        GameObject[] homes = GameObject.FindGameObjectsWithTag("home");
-        for (int i = 0; i < homes.Length; i++)
+        //GameObject[] homes = GameObject.FindGameObjectsWithTag("home");
+        for (int i = 0; i < rabbithomes.Count; i++)
         {
-            homes[i].GetComponent<home>().updateContentsAge();
+            rabbithomes[i].GetComponent<home>().updateContentsAge();
+        }
+        for (int i = 0; i < foxhomes.Count; i++)
+        {
+            foxhomes[i].GetComponent<home>().updateContentsAge();
         }
     }
 
     public void newHour()
     {
-        GameObject[] rabbits = GameObject.FindGameObjectsWithTag("rabbit");
-        for (int i = 0; i < rabbits.Length; i++)
+        //GameObject[] rabbits = GameObject.FindGameObjectsWithTag("rabbit");
+        for (int i = 0; i < rabbits.Count; i++)
         {
-            rabbits[i].GetComponent<RabbitBehaviour>().decrementEnergy();
+            if (rabbits[i].GetComponent<RabbitBehaviour>().getAction() != "Resting")
+            {
+                rabbits[i].GetComponent<RabbitBehaviour>().decrementEnergy();
+            }
+        }
+        for (int i = 0; i < foxs.Count; i++)
+        {
+            if (foxs[i].GetComponent<FoxBehaviour>().getAction() != "Resting")
+            {
+                foxs[i].GetComponent<FoxBehaviour>().decrementHunger();
+            }
         }
 
     }
@@ -156,11 +193,66 @@ public class LightingManager : MonoBehaviour
     public void newDawn()
     {
 
-        GameObject[] homes = GameObject.FindGameObjectsWithTag("home");
-        for (int i = 0; i < homes.Length; i++)
+        //GameObject[] homes = GameObject.FindGameObjectsWithTag("home");
+        for (int i = 0; i < foxhomes.Count; i++)
         {
-            homes[i].GetComponent<home>().releaseRabbits();
+            foxhomes[i].GetComponent<home>().releaseAnimals();
+        }
+        for (int i = 0; i < rabbithomes.Count; i++)
+        {
+            rabbithomes[i].GetComponent<home>().releaseAnimals();
         }
     }
+
+    public void addAnimal(GameObject a)
+    {
+        if (a.tag == "rabbit")
+        {
+            rabbits.Add(a);
+            return;
+        }
+        if (a.tag == "fox")
+        {
+            foxs.Add(a);
+            return;
+        }
+    }
+    public void removeAnimal(GameObject a)
+    {
+        if (a.tag == "rabbit")
+        {
+            rabbits.Remove(a);
+            return;
+        }
+        if (a.tag == "fox")
+        {
+            foxs.Remove(a);
+            return;
+        }
+    }
+
+    public int getFoxCount()
+    {
+        return FoxCount;
+    }
+
+    public int getRabbitCount()
+    {
+        return RabbitCount;
+    }
+
+    public List<GameObject> getRabbitHomes()
+    {
+        return rabbithomes;
+    }
+
+    public List<GameObject> getFoxHomes()
+    {
+        return foxhomes;
+    }
+
+
+
+
 
 }

@@ -9,13 +9,14 @@ public class RabbitBehaviour : MonoBehaviour
     NavMeshAgent agent;
     GameObject target;
     float timeofday;
-    public GameObject home;
+    public GameObject home = null;
     public GameObject mate;
-    public string Action = "Idle";
-    public string Maturity = "Child";
+    public string Action;
+    public string Maturity;
     public string Gender;
     public bool CanReproduce = true;
     public float Energy = 100;
+    public bool isDead = false;
     int reproductionCoolDown = 0;
 
     public GameObject rabbitPrefab;
@@ -37,7 +38,7 @@ public class RabbitBehaviour : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
+        
         SceneManager = GameObject.Find("SceneManagement");
 
         agent = this.GetComponent<NavMeshAgent>();
@@ -71,18 +72,7 @@ public class RabbitBehaviour : MonoBehaviour
         Sequence Wonder = new Sequence("Wonder");                                   //      Wonder (Sequence)
         Leaf roam = new Leaf("Roam Freely", Roam);                                  //          Roam (Action)
 
-        if (Age <= 1)
-        {
-            Maturity = "Child";
-            CanReproduce = false;
-        }
-        else if(Age <= 10){
-            Maturity = "Adult";
-        }
-        else {
-            Maturity = "Elder";
-            CanReproduce = false;
-        }
+
 
         GoHome.AddChild(canGoHome);
         GoHome.AddChild(goToHome);
@@ -116,10 +106,10 @@ public class RabbitBehaviour : MonoBehaviour
 
         tree.PrintTree();
 
-
         if (Age <= 1)
         {
             Maturity = "Child";
+            CanReproduce = false;
         }
         else if (Age <= 10)
         {
@@ -128,6 +118,24 @@ public class RabbitBehaviour : MonoBehaviour
         else
         {
             Maturity = "Elder";
+            CanReproduce = false;
+        }
+
+        if (home == null)
+        {
+            findNewHome();
+        }
+
+        if (Gender == null)
+        {
+            if (Random.value < 0.5)
+            {
+                Gender = "Male";
+            }
+            else
+            {
+                Gender = "Female";
+            }
         }
 
     }
@@ -292,6 +300,7 @@ public class RabbitBehaviour : MonoBehaviour
             mate.GetComponent<RabbitBehaviour>().setCanReproduce(false);
             mate.GetComponent<RabbitBehaviour>().setReproductionCooldown(2);
             Energy -= 20;
+            SceneManager.GetComponent<LightingManager>().addAnimal(Child);
         }
         return Node.Status.SUCCESS;
     }
@@ -336,7 +345,8 @@ public class RabbitBehaviour : MonoBehaviour
         float distanceToTarget = Vector3.Distance(home.transform.position, this.transform.position);
         if (distanceToTarget < 2)
         {
-            home.GetComponent<home>().enterRabbit(this.gameObject);
+            Action = "Resting";
+            home.GetComponent<home>().enterAnimal(this.gameObject);
         }
         return Node.Status.SUCCESS;
     }
@@ -404,6 +414,7 @@ public class RabbitBehaviour : MonoBehaviour
     public float timeTaken = 0;
     public Node.Status Roam()
     {
+        Action = "Roaming";
         float range = 20f;
         
         if (previousTargetPosition == Vector3.zero || Vector3.Distance(this.transform.position, previousTargetPosition) > range || Vector3.Distance(this.transform.position, previousTargetPosition) <= 2 || timeTaken > 5f)
@@ -415,7 +426,7 @@ public class RabbitBehaviour : MonoBehaviour
             NavMeshPath path = new NavMeshPath();
             while (!agent.CalculatePath(previousTargetPosition, path))
             {
-                print("Cant Reach");
+                //print("Cant Reach");
                 circle = Random.insideUnitCircle;
                 Circle3D = new Vector3(circle.x, 0, circle.y);
                 previousTargetPosition = this.transform.position + Circle3D * range;
@@ -432,7 +443,6 @@ public class RabbitBehaviour : MonoBehaviour
             {
                 previousTargetPosition = Vector3.zero;
             }
-            print(timeTaken);
             return GoToLocation(previousTargetPosition);
         }
         return Node.Status.FAILED;
@@ -539,6 +549,11 @@ public class RabbitBehaviour : MonoBehaviour
             CanReproduce = false;
         }
 
+        if (Age == 4)
+        {
+            findNewHome();
+        }
+
         if (Age > 12)
         {
             float randValue = Random.value;
@@ -549,7 +564,7 @@ public class RabbitBehaviour : MonoBehaviour
             }
             else
             {
-                this.gameObject.SetActive(false);
+                Die();
             }
         }
     }
@@ -592,7 +607,78 @@ public class RabbitBehaviour : MonoBehaviour
         Energy--;
         if (Energy <= 0)
         {
-            this.gameObject.SetActive(false);
+            Die();
         }
+    }
+
+    public void Die()
+    {
+        SceneManager.GetComponent<LightingManager>().removeAnimal(this.gameObject);
+        home.GetComponent<home>().removeOccupant(this.gameObject);
+        isDead = true;
+        this.gameObject.SetActive(false);
+    }
+
+    public string getAction()
+    {
+        return Action;
+    }
+
+
+    public GameObject findNewHome()
+    {
+        print("Rehoming");
+        List<GameObject> rabbithomes = new List<GameObject>();
+
+
+        if (home == null)
+        {
+            rabbithomes.AddRange(GameObject.FindGameObjectsWithTag("rabbithome"));
+            int randomNum = Random.Range(0, rabbithomes.Count - 1);
+            home = rabbithomes[randomNum];
+            home.GetComponent<home>().addOccupant(this.gameObject);
+            return home;
+        }
+        rabbithomes = SceneManager.GetComponent<LightingManager>().getRabbitHomes();
+
+
+        for (int i = 0; i < rabbithomes.Count; i++)
+        {
+            print(rabbithomes[i].GetComponent<home>().getOccupantCount());
+            if(rabbithomes[i].GetComponent<home>().getOccupantCount() == 0)
+            {
+                home.GetComponent<home>().removeOccupant(this.gameObject);
+                home = rabbithomes[i];
+                home.GetComponent<home>().addOccupant(this.gameObject);
+                print("rehomed");
+                return home;
+
+            }
+
+            if (rabbithomes[i].GetComponent<home>().getOccupantCount() == 1)
+            {
+                if (Gender == "Male" && rabbithomes[i].GetComponent<home>().getOccupants()[0].GetComponent<RabbitBehaviour>().getGender() == "Female")
+                {
+                    home.GetComponent<home>().removeOccupant(this.gameObject);
+                    home = rabbithomes[i];
+                    home.GetComponent<home>().addOccupant(this.gameObject);
+                    return home;
+                }
+
+                if (Gender == "Female" && rabbithomes[i].GetComponent<home>().getOccupants()[0].GetComponent<RabbitBehaviour>().getGender() == "Male")
+                {
+                    home.GetComponent<home>().removeOccupant(this.gameObject);
+                    home = rabbithomes[i];
+                    home.GetComponent<home>().addOccupant(this.gameObject);
+                    return home;
+                }
+            }
+
+            if (home.GetComponent<home>().getOccupantCount() > 3)
+            {
+                //Create New Home
+            }
+        }
+        return null;
     }
 }

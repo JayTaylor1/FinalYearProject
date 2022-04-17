@@ -13,24 +13,28 @@ public class UIHandler : MonoBehaviour
     public Text Day;
     public Text TimeofDay;
 
+    LightingManager LM;
+
     // Start is called before the first frame update
     void Start()
     {
-        foxText.text = GameObject.FindGameObjectsWithTag("fox").Length.ToString() ;
-        rabbitText.text = GameObject.FindGameObjectsWithTag("rabbit").Length.ToString();
+        LM = GameObject.Find("SceneManagement").GetComponent<LightingManager>();
 
-        Day.text = GameObject.Find("SceneManagement").GetComponent<LightingManager>().getDay().ToString();
-        TimeofDay.text = ((int)GameObject.Find("SceneManagement").GetComponent<LightingManager>().getTime()).ToString() + ":00";
+        foxText.text = "Fox's: " + LM.getFoxCount().ToString();
+        rabbitText.text = "Rabbits's: " + LM.getRabbitCount().ToString();
+
+        Day.text = LM.getDay().ToString();
+        TimeofDay.text = ((int)LM.getTime()).ToString() + ":00";
 
     }
 
     // Update is called once per frame
     void Update()
     {
-        foxText.text = "Fox's: " + GameObject.FindGameObjectsWithTag("fox").Length.ToString();
-        rabbitText.text = "Rabbits's: " + GameObject.FindGameObjectsWithTag("rabbit").Length.ToString();
+        foxText.text = "Fox's: " + LM.getFoxCount().ToString();
+        rabbitText.text = "Rabbits's: " + LM.getRabbitCount().ToString();
 
-        Day.text = "Day: " + GameObject.Find("SceneManagement").GetComponent<LightingManager>().getDay().ToString();
-        TimeofDay.text = ((int)GameObject.Find("SceneManagement").GetComponent<LightingManager>().getTime()).ToString() + ":00";
+        Day.text = "Day: " + LM.getDay().ToString();
+        TimeofDay.text = ((int)LM.getTime()).ToString() + ":00";
     }
 }

@@ -132,4 +132,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06a6cbd24ec810c40bdedc3ff5708b29, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  home: {fileID: 0}
   Action: Idle
+  Gender: Male
+  isDead: 0
+  Hunger: 100
+  CanReproduce: 1
+  Maturity: 
+  Age: 4
+  reproductionCoolDown: 0
+  mate: {fileID: 0}
+  foxPrefab: {fileID: 1877841299501983421}

@@ -8,6 +8,8 @@ TagManager:
   - fox
   - rabbit
   - home
+  - foxhome
+  - rabbithome
   layers:
   - Default
   - TransparentFX

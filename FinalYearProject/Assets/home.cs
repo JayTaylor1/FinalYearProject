@@ -6,13 +6,14 @@ public class home : MonoBehaviour
 {
 
     List<GameObject> contents = new List<GameObject>();
+    public List<GameObject> occupants = new List<GameObject>();
     //GameObjecy[]
-    public int rabbitsInside;
+    public int animalsInside;
 
     // Start is called before the first frame update
     void Start()
     {
-        int rabbitsInside = 0;
+        int animalsInside = 0;
 
     }
     
@@ -28,14 +29,21 @@ public class home : MonoBehaviour
             }
         }
     }
-
+/*
     public void enterRabbit(GameObject r)
     {
         r.SetActive(false);
         contents.Add(r);
-        rabbitsInside++;
+        animalsInside++;
     }
-
+*/
+    public void enterAnimal(GameObject a)
+    {
+        a.SetActive(false);
+        contents.Add(a);
+        animalsInside++;
+    }
+/*
     public void releaseRabbits()
     {
         if (contents != null)
@@ -46,8 +54,45 @@ public class home : MonoBehaviour
                 contents[i].GetComponent<RabbitBehaviour>().setEnergy(100f);
             }
         }
-        rabbitsInside = contents.Count;
+        animalsInside = contents.Count;
         contents.Clear();
+    }
+*/
+    public void releaseAnimals()
+    {
+        if (contents != null)
+        {
+            for (int i = 0; i < contents.Count; i++)
+            {
+                contents[i].SetActive(true);
+                if (contents[i].tag == "rabbit")
+                {
+                    contents[i].GetComponent<RabbitBehaviour>().setEnergy(100f);
+                }
+            }
+        }
+        animalsInside = contents.Count;
+        contents.Clear();
+    }
+
+    public void addOccupant(GameObject a)
+    {
+        occupants.Add(a);
+    }
+
+    public void removeOccupant(GameObject a)
+    {
+        occupants.Remove(a);
+    }
+
+    public int getOccupantCount()
+    {
+        return occupants.Count;
+    }
+
+    public List<GameObject> getOccupants()
+    {
+        return occupants;
     }
 
 }
