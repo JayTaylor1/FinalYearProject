@@ -133,9 +133,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   home: {fileID: 0}
+  mate: {fileID: 0}
   Action: Idle
   Maturity: Child
   Gender: Male
   CanReproduce: 1
+  Energy: 30
   rabbitPrefab: {fileID: 618229309192869675}
-  Age: 0
+  Age: 2

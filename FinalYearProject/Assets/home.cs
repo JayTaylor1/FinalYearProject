@@ -43,6 +43,7 @@ public class home : MonoBehaviour
             for (int i = 0; i < contents.Count; i++)
             {
                 contents[i].SetActive(true);
+                contents[i].GetComponent<RabbitBehaviour>().setEnergy(100f);
             }
         }
         rabbitsInside = contents.Count;

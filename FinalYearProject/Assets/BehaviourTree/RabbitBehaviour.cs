@@ -15,6 +15,7 @@ public class RabbitBehaviour : MonoBehaviour
     public string Maturity = "Child";
     public string Gender;
     public bool CanReproduce = true;
+    public float Energy = 100;
     int reproductionCoolDown = 0;
 
     public GameObject rabbitPrefab;
@@ -177,7 +178,7 @@ public class RabbitBehaviour : MonoBehaviour
 
     public Node.Status isNightTime()
     {
-        if (getTimeofDay() >= 22f || getTimeofDay()<= 4f)
+        if (getTimeofDay() >= 22f || getTimeofDay()<= 4f || Energy <= 30f)
         {
             return Node.Status.SUCCESS;
         }
@@ -191,7 +192,7 @@ public class RabbitBehaviour : MonoBehaviour
     {
         //mate;
         //mate = null;
-        if (!CanReproduce)
+        if (!CanReproduce && Energy >= 50f)
         {
             mate = null;
             return Node.Status.FAILED;
@@ -290,6 +291,7 @@ public class RabbitBehaviour : MonoBehaviour
             reproductionCoolDown = 2;
             mate.GetComponent<RabbitBehaviour>().setCanReproduce(false);
             mate.GetComponent<RabbitBehaviour>().setReproductionCooldown(2);
+            Energy -= 20;
         }
         return Node.Status.SUCCESS;
     }
@@ -329,26 +331,12 @@ public class RabbitBehaviour : MonoBehaviour
     public Node.Status returnHome()
     {
         Action = "Going Home";
-        /*
-        if (GoToLocation(home.transform.position) == Node.Status.SUCCESS)
-        {
-            this.gameObject.SetActive(false);
-            return Node.Status.SUCCESS;
-        }
-        return Node.Status.SUCCESS;
-        */
+
         GoToLocation(home.transform.position);
         float distanceToTarget = Vector3.Distance(home.transform.position, this.transform.position);
         if (distanceToTarget < 2)
         {
-            //this.GetComponent<Renderer>().enabled = false;
-
-
-            //print(this.gameObject);
-
             home.GetComponent<home>().enterRabbit(this.gameObject);
-
-
         }
         return Node.Status.SUCCESS;
     }
@@ -411,12 +399,48 @@ public class RabbitBehaviour : MonoBehaviour
 
 
 
-    Vector3 wanderTarget = Vector3.zero;
+    //Vector3 wanderTarget = Vector3.zero;
+    public Vector3 previousTargetPosition = Vector3.zero;
+    public float timeTaken = 0;
     public Node.Status Roam()
     {
+        float range = 20f;
+        
+        if (previousTargetPosition == Vector3.zero || Vector3.Distance(this.transform.position, previousTargetPosition) > range || Vector3.Distance(this.transform.position, previousTargetPosition) <= 2 || timeTaken > 5f)
+        {
+            timeTaken = 0;
+            Vector2 circle = Random.insideUnitCircle;
+            Vector3 Circle3D = new Vector3(circle.x, 0, circle.y);
+            previousTargetPosition = this.transform.position + Circle3D * range;
+            NavMeshPath path = new NavMeshPath();
+            while (!agent.CalculatePath(previousTargetPosition, path))
+            {
+                print("Cant Reach");
+                circle = Random.insideUnitCircle;
+                Circle3D = new Vector3(circle.x, 0, circle.y);
+                previousTargetPosition = this.transform.position + Circle3D * range;
+            }
+        }
+
+
+
+
+        if (Vector3.Distance(this.transform.position, previousTargetPosition) <= range)
+        {
+            timeTaken += Time.deltaTime;
+            if (timeTaken > 5f)
+            {
+                previousTargetPosition = Vector3.zero;
+            }
+            print(timeTaken);
+            return GoToLocation(previousTargetPosition);
+        }
+        return Node.Status.FAILED;
+
+        /*
         Action = "Roaming";
-        float wanderRadius = 10;
-        float wanderDistance = 10;
+        float wanderRadius = 5;
+        float wanderDistance = 5;
         float wanderJitter = 1;
 
         wanderTarget += new Vector3(Random.Range(-1.0f, 1.0f) * wanderJitter, 0, Random.Range(-1.0f, 1.0f) * wanderJitter);
@@ -425,8 +449,8 @@ public class RabbitBehaviour : MonoBehaviour
 
         Vector3 targetLocal = wanderTarget + new Vector3(0, 0, wanderDistance);
         Vector3 targetWorld = this.gameObject.transform.InverseTransformVector(targetLocal);
+        */
 
-        return GoToLocation(targetWorld);
     }
 
 
@@ -555,5 +579,20 @@ public class RabbitBehaviour : MonoBehaviour
     public void setMate(GameObject m)
     {
         mate = m;
+    }
+
+    public void setEnergy(float e)
+    {
+        Energy = e;
+    }
+
+
+    public void decrementEnergy()
+    {
+        Energy--;
+        if (Energy <= 0)
+        {
+            this.gameObject.SetActive(false);
+        }
     }
 }

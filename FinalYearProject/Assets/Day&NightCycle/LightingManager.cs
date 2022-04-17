@@ -13,7 +13,14 @@ public class LightingManager : MonoBehaviour
     private bool isnewDawn = true;
 
 
-    private int previousDay = 0;
+
+
+
+    int previousDay = 0;
+    private int previousHour = 0;
+
+    public int currentHour = 0;
+
 
     private void Update()
     {
@@ -25,6 +32,24 @@ public class LightingManager : MonoBehaviour
         {
             TimeOfDay += Time.deltaTime;
             Day = (int)(TimeOfDay / 24);
+
+            if (((int)TimeOfDay % 24 == 0) && (Day != previousDay))
+            {
+                newDay();
+
+                //print("New Day");
+                previousDay = Day;
+                isnewDawn = true;
+            }
+
+            //int previousHour = 0;
+
+            currentHour = (int)(TimeOfDay % 24);
+            if (currentHour != previousHour)
+            {
+                newHour();
+                previousHour = currentHour;
+            }
 
             if (((int)TimeOfDay % 24 == 0) && (Day != previousDay))
             {
@@ -116,6 +141,16 @@ public class LightingManager : MonoBehaviour
         {
             homes[i].GetComponent<home>().updateContentsAge();
         }
+    }
+
+    public void newHour()
+    {
+        GameObject[] rabbits = GameObject.FindGameObjectsWithTag("rabbit");
+        for (int i = 0; i < rabbits.Length; i++)
+        {
+            rabbits[i].GetComponent<RabbitBehaviour>().decrementEnergy();
+        }
+
     }
 
     public void newDawn()
