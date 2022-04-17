@@ -46,6 +46,7 @@ public class home : MonoBehaviour
             }
         }
         rabbitsInside = contents.Count;
+        contents.Clear();
     }
 
 }

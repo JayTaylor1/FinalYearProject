@@ -10,6 +10,7 @@ public class RabbitBehaviour : MonoBehaviour
     GameObject target;
     float timeofday;
     public GameObject home;
+    public GameObject mate;
     public string Action = "Idle";
     public string Maturity = "Child";
     public string Gender;
@@ -40,31 +41,34 @@ public class RabbitBehaviour : MonoBehaviour
 
         agent = this.GetComponent<NavMeshAgent>();
 
-        tree = new BehaviourTree();                                             //Root Node
+        tree = new BehaviourTree();                                                 //Root Node
 
 
-        Selector RabbitTree = new Selector("Rabbit");                           //  Rabbit (Selector)
+        Selector RabbitTree = new Selector("Rabbit");                               //  Rabbit (Selector)
         
-        Sequence Hide = new Sequence("Hide");                                   //      Preditor in Radius (Sequence)
-        Leaf inRangeTarget = new Leaf("Target in Range?", TargetInRange);       //          Sensed Enemy (Condition)
-        Selector Flee = new Selector("Flee");                                   //          Flee (Selector)
-        Sequence GoHome = new Sequence("Go Home");                              //              GoHome (Sequence)
-        Leaf canGoHome = new Leaf("Can go Home?", CanGoHome);                   //                  Can Go Home (Condition)
-        Leaf goToHome = new Leaf("Go To Home", FleeHome);                       //                  Flee Home (Action)
-        Leaf goToHide = new Leaf("Go to Hide", GoToHide);                       //              Evade (Action)
+        Sequence Hide = new Sequence("Hide");                                       //      Preditor in Radius (Sequence)
+        Leaf inRangeTarget = new Leaf("Target in Range?", TargetInRange);           //          Sensed Enemy (Condition)
+        Selector Flee = new Selector("Flee");                                       //          Flee (Selector)
+        Sequence GoHome = new Sequence("Go Home");                                  //              GoHome (Sequence)
+        Leaf canGoHome = new Leaf("Can go Home?", CanGoHome);                       //                  Can Go Home (Condition)
+        Leaf goToHome = new Leaf("Go To Home", FleeHome);                           //                  Flee Home (Action)
+        Leaf goToHide = new Leaf("Go to Hide", GoToHide);                           //              Evade (Action)
 
-        Sequence sleep = new Sequence("if Night Time");                         //      If night time (Sequence)
-        Leaf IsNightTime = new Leaf("Check if Night", isNightTime);             //          Check if Night time (condition)    
-        Leaf ReturnHome = new Leaf("Return Home", returnHome);                  //          Go Home(Action)
+        Sequence sleep = new Sequence("if Night Time");                             //      If night time (Sequence)
+        Leaf IsNightTime = new Leaf("Check if Night", isNightTime);                 //          Check if Night time (condition)    
+        Leaf ReturnHome = new Leaf("Return Home", returnHome);                      //          Go Home(Action)
 
-        Sequence reprodcution = new Sequence("Reproduction");                    //      Reproduce (Sequence)
-        Leaf CheckCanReproduce = new Leaf("Check if can reproduce", canReproduce);   //          Check if can reproduce (condition)    
-        Leaf reproduce = new Leaf("Produce Child", Reproduce);                  //          reproduce(Action)
+        Sequence reprodcution = new Sequence("Reproduction");                       //      Reproduce (Sequence)
+        Leaf CheckCanReproduce = new Leaf("Check if can reproduce", canReproduce);  //          Check if can reproduce (condition)
 
+        Selector ProduceChild = new Selector("Produce Child");                      //          Produce Child (Selector)
+        Sequence MateInRange = new Sequence("MateInRange");                         //              Mate In Range (Sequence)
+        Leaf IsMateInRange = new Leaf("Is mate close enough", isMateInRange);       //                  Is mate Close enough to reproduce (condition)
+        Leaf reproduce = new Leaf("Produce Child", Reproduce);                      //                  reproduce(Action)
+        Leaf GoToMate = new Leaf("Go To Mate", goToMate);                           //              Go To Mate (Action)
 
-        Sequence Wonder = new Sequence("Wonder");                               //      Wonder (Sequence)
-        Leaf roam = new Leaf("Roam Freely", Roam);                              //          Roam (Action)
-
+        Sequence Wonder = new Sequence("Wonder");                                   //      Wonder (Sequence)
+        Leaf roam = new Leaf("Roam Freely", Roam);                                  //          Roam (Action)
 
         if (Age <= 1)
         {
@@ -79,11 +83,6 @@ public class RabbitBehaviour : MonoBehaviour
             CanReproduce = false;
         }
 
-
-
-
-
-
         GoHome.AddChild(canGoHome);
         GoHome.AddChild(goToHome);
 
@@ -96,8 +95,14 @@ public class RabbitBehaviour : MonoBehaviour
         sleep.AddChild(IsNightTime);
         sleep.AddChild(ReturnHome);
 
+        MateInRange.AddChild(IsMateInRange);
+        MateInRange.AddChild(reproduce);
+
+        ProduceChild.AddChild(MateInRange);
+        ProduceChild.AddChild(GoToMate);
+
         reprodcution.AddChild(CheckCanReproduce);
-        reprodcution.AddChild(reproduce);
+        reprodcution.AddChild(ProduceChild);
 
         Wonder.AddChild(roam);
 
@@ -179,24 +184,113 @@ public class RabbitBehaviour : MonoBehaviour
         return Node.Status.FAILED;
     }
 
+
+
+
     public Node.Status canReproduce()
     {
-        if (CanReproduce && Gender == "Female")
+        //mate;
+        //mate = null;
+        if (!CanReproduce)
+        {
+            mate = null;
+            return Node.Status.FAILED;
+        }
+        GameObject[] rabbits;
+        if (Gender == "Female")
+        {
+            mate = null;
+            rabbits = GameObject.FindGameObjectsWithTag("rabbit");
+
+            float dist = Mathf.Infinity;
+            GameObject chosenRabbit = null;
+
+            for (int i = 0; i < rabbits.Length; i++)
+            {
+                if (rabbits[i].GetComponent<RabbitBehaviour>().getGender() == "Male" && rabbits[i].GetComponent<RabbitBehaviour>().getCanReproduce())
+                {
+                    if (Vector3.Distance(this.transform.position, rabbits[i].transform.position) < dist)
+                    {
+                        chosenRabbit = rabbits[i];
+                        dist = Vector3.Distance(this.transform.position, rabbits[i].transform.position);
+                    }
+                }
+
+            }
+
+            if (dist > 10)
+            {
+                return Node.Status.FAILED;
+            }
+
+
+            if (chosenRabbit == null)
+            {
+                return Node.Status.FAILED;
+            }
+            mate = chosenRabbit;
+            mate.GetComponent<RabbitBehaviour>().setMate(this.gameObject);
+            return Node.Status.SUCCESS;
+        }
+       
+        
+        if (Gender == "Male" && mate != null)
+        {
+            float distanceToMate = Vector3.Distance(mate.transform.position, this.transform.position);
+            if (distanceToMate > 10)
+            {
+                mate = null;
+                return Node.Status.FAILED;
+            }
+            return Node.Status.SUCCESS;
+        }
+        return Node.Status.FAILED;
+
+    }
+
+    public Node.Status isMateInRange()
+    {
+        float distanceToMate = Vector3.Distance(mate.transform.position, this.transform.position);
+        if (distanceToMate < 2)
         {
             return Node.Status.SUCCESS;
         }
         return Node.Status.FAILED;
     }
 
+
+
+    public Node.Status goToMate()
+    {
+        if (mate != null)
+        {
+            return GoToLocation(mate.transform.position);
+        }
+        return Node.Status.FAILED;
+    }
+
     public Node.Status Reproduce()
     {
-        GameObject Child = (GameObject)Instantiate(rabbitPrefab, this.transform.position, Quaternion.identity);
-        Child.GetComponent<RabbitBehaviour>().setAge(0);
-        Child.GetComponent<RabbitBehaviour>().setGender("Male");
-        Child.GetComponent<RabbitBehaviour>().setHome(home);
-        Child.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
-        CanReproduce = false;
-        reproductionCoolDown = 2;
+        if (Gender == "Female")
+        {
+            GameObject Child = (GameObject)Instantiate(rabbitPrefab, this.transform.position, Quaternion.identity);
+            Child.GetComponent<RabbitBehaviour>().setAge(0);
+            if (Random.value < .5)
+            {
+                Child.GetComponent<RabbitBehaviour>().setGender("Male");
+            }
+            else
+            {
+                Child.GetComponent<RabbitBehaviour>().setGender("Female");
+            }
+                
+            Child.GetComponent<RabbitBehaviour>().setHome(home);
+            Child.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+            CanReproduce = false;
+            reproductionCoolDown = 2;
+            mate.GetComponent<RabbitBehaviour>().setCanReproduce(false);
+            mate.GetComponent<RabbitBehaviour>().setReproductionCooldown(2);
+        }
         return Node.Status.SUCCESS;
     }
 
@@ -434,5 +528,32 @@ public class RabbitBehaviour : MonoBehaviour
                 this.gameObject.SetActive(false);
             }
         }
+    }
+
+
+
+    public string getGender()
+    {
+        return Gender;
+    }
+
+    public bool getCanReproduce()
+    {
+        return CanReproduce;
+    }
+
+    public void setCanReproduce(bool cr)
+    {
+        CanReproduce = cr;
+    }
+
+    public void setReproductionCooldown(int cd)
+    {
+        reproductionCoolDown = cd;
+    }
+    
+    public void setMate(GameObject m)
+    {
+        mate = m;
     }
 }
