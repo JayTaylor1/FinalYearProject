@@ -12,6 +12,7 @@ public class UIHandler : MonoBehaviour
     public Text rabbitText;
     public Text Day;
     public Text TimeofDay;
+    public Text SelectedGO;
 
     LightingManager LM;
 
@@ -36,5 +37,10 @@ public class UIHandler : MonoBehaviour
 
         Day.text = "Day: " + LM.getDay().ToString();
         TimeofDay.text = ((int)LM.getTime()).ToString() + ":00";
+    }
+
+    public void setselectedGOTxt(string t)
+    {
+        SelectedGO.text = "Selected: " + t;
     }
 }

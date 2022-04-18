@@ -5,8 +5,8 @@ using UnityEngine.AI;
 
 public class FoxBehaviour : MonoBehaviour
 {
-    //public float Speed;
-    //public float Sense;
+    public float Speed = 0;
+    public float Sense = 0;
 
 
     BehaviourTree tree;
@@ -14,7 +14,7 @@ public class FoxBehaviour : MonoBehaviour
     GameObject target;
     public GameObject home = null;
     public string Action;
-    public string Gender;
+    public string Gender = null;
     public bool isDead = false;
     public int Hunger = 100;
 
@@ -140,6 +140,29 @@ public class FoxBehaviour : MonoBehaviour
             findNewHome();
         }
 
+
+        if (Gender == null || Gender == "")
+        {
+            if (Random.value < 0.5)
+            {
+                Gender = "Male";
+            }
+            else
+            {
+                Gender = "Female";
+            }
+        }
+
+        if (Speed <= 0)
+        {
+            Speed = Random.Range(3.0f, 3.5f);
+        }
+
+        if (Sense <= 0)
+        {
+            Sense = Random.Range(8.0f, 12.0f);
+        }
+
     }
 
     public GameObject GetClosestTarget()
@@ -165,12 +188,16 @@ public class FoxBehaviour : MonoBehaviour
 
     public Node.Status TargetInRange()
     {
-        target = GetClosestTarget();
-        if (target == null)
+        if (Hunger >= 100)
         {
             return Node.Status.FAILED;
         }
-        if (Vector3.Distance(this.transform.position, target.transform.position) < 10)
+        target = GetClosestTarget();
+        if (target == null )
+        {
+            return Node.Status.FAILED;
+        }
+        if (Vector3.Distance(this.transform.position, target.transform.position) < Sense)
         {
             Action = "Chasing";
             return Node.Status.SUCCESS;
@@ -222,7 +249,7 @@ public class FoxBehaviour : MonoBehaviour
         {
             return Node.Status.SUCCESS;
         }
-        if (Vector3.Distance(this.transform.position, target.transform.position) > 10)
+        if (Vector3.Distance(this.transform.position, target.transform.position) > Sense)
         {
             Vector3 targetDir = target.transform.position - this.transform.position;
             var ray = new Ray(this.transform.position, targetDir.normalized);
@@ -272,7 +299,7 @@ public class FoxBehaviour : MonoBehaviour
 
             }
 
-            if (dist > 10)
+            if (dist > Sense)
             {
                 return Node.Status.FAILED;
             }
@@ -291,7 +318,7 @@ public class FoxBehaviour : MonoBehaviour
         if (Gender == "Male" && mate != null)
         {
             float distanceToMate = Vector3.Distance(mate.transform.position, this.transform.position);
-            if (distanceToMate > 10)
+            if (distanceToMate > Sense)
             {
                 mate = null;
                 return Node.Status.FAILED;
@@ -330,7 +357,7 @@ public class FoxBehaviour : MonoBehaviour
             }
 
             Child.GetComponent<FoxBehaviour>().setHome(home);
-            Child.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+            Child.transform.localScale = new Vector3(0.75f, 0.75f, 0.75f);
             CanReproduce = false;
             reproductionCoolDown = 4;
             mate.GetComponent<FoxBehaviour>().setCanReproduce(false);
@@ -374,7 +401,7 @@ public class FoxBehaviour : MonoBehaviour
 
     public Node.Status ChasePrey()
     {
-        if (target == null || Vector3.Distance(target.transform.position, this.transform.position) > 10)
+        if (target == null || Vector3.Distance(target.transform.position, this.transform.position) > Sense)
         {
             return Node.Status.FAILED;
         }
@@ -486,6 +513,19 @@ public class FoxBehaviour : MonoBehaviour
         }
         return Node.Status.RUNNING;
         */
+        float currentSpeed = Speed;
+        if (Maturity == "Child" || Maturity == "Elder")
+        {
+            currentSpeed *= 0.9f;
+        }
+        if (Hunger <= 30)
+        {
+            currentSpeed *= 0.8f;
+        }
+
+        
+
+        agent.speed = currentSpeed;
         agent.SetDestination(destination);
         return Node.Status.SUCCESS;
     }
@@ -535,13 +575,14 @@ public class FoxBehaviour : MonoBehaviour
         if (reproductionCoolDown > 0)
         {
             reproductionCoolDown--;
-            this.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+            //this.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
         }
 
         if (Age <= 1)
         {
             Maturity = "Child";
             CanReproduce = false;
+            this.transform.localScale = new Vector3(0.75f, 0.75f, 0.75f);
         }
         else if (Age <= 12)
         {
@@ -589,18 +630,16 @@ public class FoxBehaviour : MonoBehaviour
     public GameObject findNewHome()
     {
 
-        print("Rehoming");
+        //print("Rehoming");
         List<GameObject> foxhomes = new List<GameObject>();
         
-
-        print(home);
         if (home == null)
         { 
             foxhomes.AddRange(GameObject.FindGameObjectsWithTag("foxhome"));
             int randomNum = Random.Range(0, foxhomes.Count - 1);
             home = foxhomes[randomNum];
             home.GetComponent<home>().addOccupant(this.gameObject);
-            print(home);
+            //print(home);
             return home;
         }
 
@@ -684,5 +723,6 @@ public class FoxBehaviour : MonoBehaviour
     {
         reproductionCoolDown = cd;
     }
+
 
 }

@@ -159,14 +159,27 @@ public class LightingManager : MonoBehaviour
         {
             rabbits[i].GetComponent<RabbitBehaviour>().incrementAge();
         }
+
+        //GameObject[] rabbits = GameObject.FindGameObjectsWithTag("rabbit");
+        for (int i = 0; i < foxs.Count; i++)
+        {
+            foxs[i].GetComponent<FoxBehaviour>().incrementAge();
+        }
+
         //GameObject[] homes = GameObject.FindGameObjectsWithTag("home");
         for (int i = 0; i < rabbithomes.Count; i++)
         {
-            rabbithomes[i].GetComponent<home>().updateContentsAge();
+            if (rabbithomes[i].GetComponent<home>().getContentsCount() > 0)
+            {
+                rabbithomes[i].GetComponent<home>().updateContentsAge();
+            }
         }
         for (int i = 0; i < foxhomes.Count; i++)
         {
-            foxhomes[i].GetComponent<home>().updateContentsAge();
+            if (foxhomes[i].GetComponent<home>().getContentsCount() > 0)
+            {
+                foxhomes[i].GetComponent<home>().updateContentsAge();
+            }
         }
     }
 

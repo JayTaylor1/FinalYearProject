@@ -5,6 +5,9 @@ using UnityEngine.AI;
 
 public class RabbitBehaviour : MonoBehaviour
 {
+    public float Speed = 0;
+    public float Sense = 0;
+
     BehaviourTree tree;
     NavMeshAgent agent;
     GameObject target;
@@ -126,7 +129,7 @@ public class RabbitBehaviour : MonoBehaviour
             findNewHome();
         }
 
-        if (Gender == null)
+        if (Gender == null || Gender == "")
         {
             if (Random.value < 0.5)
             {
@@ -136,6 +139,16 @@ public class RabbitBehaviour : MonoBehaviour
             {
                 Gender = "Female";
             }
+        }
+
+        if (Speed <= 0)
+        {
+            Speed = Random.Range(3.0f, 3.5f);
+        }
+
+        if (Sense <= 0)
+        {
+            Sense = Random.Range(8.0f, 12.0f);
         }
 
     }
@@ -170,17 +183,19 @@ public class RabbitBehaviour : MonoBehaviour
         {
             return Node.Status.FAILED;
         }
-        if (Vector3.Distance(this.transform.position, target.transform.position) < 10)
+        if (Vector3.Distance(this.transform.position, target.transform.position) < Sense)
         {
             Action = "Fleeing";
             return Node.Status.SUCCESS;
         }
+        /*
         else if (Action == "Fleeing")
         {
             Action = "Idle";
             agent.isStopped = true;
             return Node.Status.FAILED;
         }
+        */
         return Node.Status.FAILED;
     }
 
@@ -227,7 +242,7 @@ public class RabbitBehaviour : MonoBehaviour
 
             }
 
-            if (dist > 10)
+            if (dist > Sense)
             {
                 return Node.Status.FAILED;
             }
@@ -246,7 +261,7 @@ public class RabbitBehaviour : MonoBehaviour
         if (Gender == "Male" && mate != null)
         {
             float distanceToMate = Vector3.Distance(mate.transform.position, this.transform.position);
-            if (distanceToMate > 10)
+            if (distanceToMate > Sense)
             {
                 mate = null;
                 return Node.Status.FAILED;
@@ -284,7 +299,7 @@ public class RabbitBehaviour : MonoBehaviour
         {
             GameObject Child = (GameObject)Instantiate(rabbitPrefab, this.transform.position, Quaternion.identity);
             Child.GetComponent<RabbitBehaviour>().setAge(0);
-            if (Random.value < .5)
+            if (Random.value < 0.5)
             {
                 Child.GetComponent<RabbitBehaviour>().setGender("Male");
             }
@@ -294,7 +309,7 @@ public class RabbitBehaviour : MonoBehaviour
             }
                 
             Child.GetComponent<RabbitBehaviour>().setHome(home);
-            Child.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+            Child.transform.localScale = new Vector3(0.75f, 0.75f, 0.75f);
             CanReproduce = false;
             reproductionCoolDown = 2;
             mate.GetComponent<RabbitBehaviour>().setCanReproduce(false);
@@ -322,7 +337,7 @@ public class RabbitBehaviour : MonoBehaviour
                 Vector3 toEnemy = this.transform.position - Preditors[i].transform.position;
                 float angleToEnemy = Vector3.Angle(this.transform.forward, toEnemy);
 
-                if ((Vector3.Distance(this.transform.position, Preditors[i].transform.position) < 10) && angleToEnemy > 45.0f)
+                if ((Vector3.Distance(this.transform.position, Preditors[i].transform.position) < Sense) && angleToEnemy > 45.0f)
                 {
                     return Node.Status.FAILED;
                 }
@@ -487,6 +502,19 @@ public class RabbitBehaviour : MonoBehaviour
         }
         return Node.Status.RUNNING;
         */
+        float currentSpeed = Speed;
+        if (Maturity == "Child" || Maturity == "Elder")
+        {
+            currentSpeed *= 0.9f;
+        }
+        if (Energy <= 30)
+        {
+            currentSpeed *= 0.8f;
+        }
+
+
+
+        agent.speed = currentSpeed;
         agent.SetDestination(destination);
         return Node.Status.SUCCESS;
     }
@@ -526,13 +554,14 @@ public class RabbitBehaviour : MonoBehaviour
         if (reproductionCoolDown > 0)
         {
             reproductionCoolDown--;
-            this.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+            //this.transform.localScale = new Vector3(0.65f, 0.75f, 0.75f);
         }
 
         if (Age <= 1)
         {
             Maturity = "Child";
             CanReproduce = false;
+            this.transform.localScale = new Vector3(0.75f, 0.75f, 0.75f);
         }
         else if (Age <= 10)
         {
@@ -627,7 +656,7 @@ public class RabbitBehaviour : MonoBehaviour
 
     public GameObject findNewHome()
     {
-        print("Rehoming");
+        //print("Rehoming");
         List<GameObject> rabbithomes = new List<GameObject>();
 
 
@@ -650,7 +679,7 @@ public class RabbitBehaviour : MonoBehaviour
                 home.GetComponent<home>().removeOccupant(this.gameObject);
                 home = rabbithomes[i];
                 home.GetComponent<home>().addOccupant(this.gameObject);
-                print("rehomed");
+                //print("rehomed");
                 return home;
 
             }

@@ -21,9 +21,9 @@ public class home : MonoBehaviour
 
     public void updateContentsAge()
     {
-        if (contents != null)
+        if (contents != null || contents.Count > 0)
         {
-            for (int i = 0; i < contents.Count; i++)
+            for (int i = 0; i < contents.Count - 1; i++)
             {
                 contents[i].gameObject.GetComponent<RabbitBehaviour>().incrementAge();
             }
@@ -88,6 +88,11 @@ public class home : MonoBehaviour
     public int getOccupantCount()
     {
         return occupants.Count;
+    }
+
+    public int getContentsCount()
+    {
+        return contents.Count;
     }
 
     public List<GameObject> getOccupants()
