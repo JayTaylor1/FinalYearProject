@@ -74,15 +74,6 @@ public class LightingManager : MonoBehaviour
                 previousHour = currentHour;
             }
 
-            if (((int)TimeOfDay % 24 == 0) && (Day != previousDay))
-            {
-                newDay();
-
-                //print("New Day");
-                previousDay = Day;
-                isnewDawn = true;
-            }
-
             if (((int)TimeOfDay % 24 == 4) && (isnewDawn == true))
             {
                 newDawn();
@@ -154,18 +145,21 @@ public class LightingManager : MonoBehaviour
 
     public void newDay()
     {
+
+
         //GameObject[] rabbits = GameObject.FindGameObjectsWithTag("rabbit");
-        for (int i = 0; i < rabbits.Count; i++)
+        foreach (GameObject rabbit in rabbits)
         {
-            rabbits[i].GetComponent<RabbitBehaviour>().incrementAge();
+            rabbit.GetComponent<RabbitBehaviour>().incrementAge();
         }
 
         //GameObject[] rabbits = GameObject.FindGameObjectsWithTag("rabbit");
-        for (int i = 0; i < foxs.Count; i++)
+        foreach (GameObject fox in foxs)
         {
-            foxs[i].GetComponent<FoxBehaviour>().incrementAge();
+            fox.GetComponent<FoxBehaviour>().incrementAge();
         }
 
+        /*
         //GameObject[] homes = GameObject.FindGameObjectsWithTag("home");
         for (int i = 0; i < rabbithomes.Count; i++)
         {
@@ -181,6 +175,7 @@ public class LightingManager : MonoBehaviour
                 foxhomes[i].GetComponent<home>().updateContentsAge();
             }
         }
+        */
     }
 
     public void newHour()

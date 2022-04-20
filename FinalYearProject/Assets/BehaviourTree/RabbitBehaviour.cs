@@ -107,7 +107,7 @@ public class RabbitBehaviour : MonoBehaviour
 
         tree.AddChild(RabbitTree);
 
-        tree.PrintTree();
+        //tree.PrintTree();
 
         if (Age <= 1)
         {
@@ -185,7 +185,6 @@ public class RabbitBehaviour : MonoBehaviour
         }
         if (Vector3.Distance(this.transform.position, target.transform.position) < Sense)
         {
-            Action = "Fleeing";
             return Node.Status.SUCCESS;
         }
         /*
@@ -288,6 +287,7 @@ public class RabbitBehaviour : MonoBehaviour
     {
         if (mate != null)
         {
+            Action = "Going to Mate";
             return GoToLocation(mate.transform.position);
         }
         return Node.Status.FAILED;
@@ -392,6 +392,7 @@ public class RabbitBehaviour : MonoBehaviour
 
     public Node.Status GoToHide()
     {
+        
         float dist = Mathf.Infinity;
         Vector3 chosenSpot = Vector3.zero;
         Vector3 chosenDir = Vector3.zero;
@@ -410,15 +411,37 @@ public class RabbitBehaviour : MonoBehaviour
             }
         }
 
-        Collider hideCol = chosenGO.GetComponent<Collider>();
-        Ray backRay = new Ray(chosenSpot, -chosenDir.normalized);
-        RaycastHit info;
-        float distance = 100.0f;
-        hideCol.Raycast(backRay, out info, distance);
+        //if theres no fox ibetween this and the chosen hide
 
 
+        Vector3 toHide = chosenGO.transform.position - this.transform.position;
+        Vector3 toTarget = target.transform.position - this.transform.position;
 
-        return GoToLocation(info.point + chosenDir.normalized * 2);
+        float lookingAngle = Vector3.Angle(toTarget, toHide);
+
+        Vector3 VtoTarget = target.transform.position - this.transform.position;
+        float AngleToTarget = Vector3.Angle(this.transform.forward, VtoTarget);
+
+        if (lookingAngle > 60 || AngleToTarget > 135)
+        {
+            Action = "Hiding";
+            Collider hideCol = chosenGO.GetComponent<Collider>();
+            Ray backRay = new Ray(chosenSpot, -chosenDir.normalized);
+            RaycastHit info;
+            float distance = 100.0f;
+            hideCol.Raycast(backRay, out info, distance);
+            return GoToLocation(info.point + chosenDir.normalized * 2);
+        }
+        else
+        {
+            Action = "Fleeing";
+            Vector3 fleeVector = target.transform.position - this.transform.position;
+            return GoToLocation(this.transform.position - fleeVector);
+
+            //print("help");
+        }
+
+        return Node.Status.SUCCESS;
     }
 
 
@@ -518,6 +541,8 @@ public class RabbitBehaviour : MonoBehaviour
         agent.SetDestination(destination);
         return Node.Status.SUCCESS;
     }
+
+
 
 
     // Update is called once per frame
@@ -653,6 +678,29 @@ public class RabbitBehaviour : MonoBehaviour
         return Action;
     }
 
+    public float getSpeed()
+    {
+        return Speed;
+    }
+
+    public float getSense()
+    {
+        return Sense;
+    }
+
+    public float getEnergy()
+    {
+        return Energy;
+    }
+    public string getMaturity()
+    {
+        return Maturity;
+    }
+    public int getAge()
+    {
+        return Age;
+    }
+
 
     public GameObject findNewHome()
     {
@@ -671,33 +719,34 @@ public class RabbitBehaviour : MonoBehaviour
         rabbithomes = SceneManager.GetComponent<LightingManager>().getRabbitHomes();
 
 
-        for (int i = 0; i < rabbithomes.Count; i++)
+        //for (int i = 0; i < rabbithomes.Count; i++)
+        foreach(GameObject rabbithome in rabbithomes)
         {
-            print(rabbithomes[i].GetComponent<home>().getOccupantCount());
-            if(rabbithomes[i].GetComponent<home>().getOccupantCount() == 0)
+            //print(rabbithomes[i].GetComponent<home>().getOccupantCount());
+            if(rabbithome.GetComponent<home>().getOccupantCount() == 0)
             {
                 home.GetComponent<home>().removeOccupant(this.gameObject);
-                home = rabbithomes[i];
+                home = rabbithome;
                 home.GetComponent<home>().addOccupant(this.gameObject);
                 //print("rehomed");
                 return home;
 
             }
 
-            if (rabbithomes[i].GetComponent<home>().getOccupantCount() == 1)
+            if (rabbithome.GetComponent<home>().getOccupantCount() == 1)
             {
-                if (Gender == "Male" && rabbithomes[i].GetComponent<home>().getOccupants()[0].GetComponent<RabbitBehaviour>().getGender() == "Female")
+                if (Gender == "Male" && rabbithome.GetComponent<home>().getOccupants()[0].GetComponent<RabbitBehaviour>().getGender() == "Female")
                 {
                     home.GetComponent<home>().removeOccupant(this.gameObject);
-                    home = rabbithomes[i];
+                    home = rabbithome;
                     home.GetComponent<home>().addOccupant(this.gameObject);
                     return home;
                 }
 
-                if (Gender == "Female" && rabbithomes[i].GetComponent<home>().getOccupants()[0].GetComponent<RabbitBehaviour>().getGender() == "Male")
+                if (Gender == "Female" && rabbithome.GetComponent<home>().getOccupants()[0].GetComponent<RabbitBehaviour>().getGender() == "Male")
                 {
                     home.GetComponent<home>().removeOccupant(this.gameObject);
-                    home = rabbithomes[i];
+                    home = rabbithome;
                     home.GetComponent<home>().addOccupant(this.gameObject);
                     return home;
                 }

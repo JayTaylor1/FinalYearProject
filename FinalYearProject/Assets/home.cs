@@ -5,7 +5,7 @@ using UnityEngine;
 public class home : MonoBehaviour
 {
 
-    List<GameObject> contents = new List<GameObject>();
+    public List<GameObject> contents = new List<GameObject>();
     public List<GameObject> occupants = new List<GameObject>();
     //GameObjecy[]
     public int animalsInside;
@@ -18,17 +18,20 @@ public class home : MonoBehaviour
     }
     
 
-
+    /*
     public void updateContentsAge()
     {
         if (contents != null || contents.Count > 0)
         {
-            for (int i = 0; i < contents.Count - 1; i++)
+            foreach (GameObject animal in contents)
+            //for (int i = 0; i < contents.Count - 1; i++)
             {
-                contents[i].gameObject.GetComponent<RabbitBehaviour>().incrementAge();
+                animal.GetComponent<RabbitBehaviour>().incrementAge();
+
             }
         }
     }
+    */
 /*
     public void enterRabbit(GameObject r)
     {
@@ -62,16 +65,24 @@ public class home : MonoBehaviour
     {
         if (contents != null)
         {
-            for (int i = 0; i < contents.Count; i++)
+            //for (int i = 0; i < contents.Count; i++)
+            foreach(GameObject animal in contents)
             {
-                contents[i].SetActive(true);
-                if (contents[i].tag == "rabbit")
+                animal.SetActive(true);
+                if (animal.tag == "rabbit")
                 {
-                    contents[i].GetComponent<RabbitBehaviour>().setEnergy(100f);
+                    animal.GetComponent<RabbitBehaviour>().setEnergy(100f);
+                }
+                if (animal.tag == "fox")
+                {
+                    if (animal.GetComponent<FoxBehaviour>().getHunger() >= 100)
+                    {
+                        animal.GetComponent<FoxBehaviour>().setHunger(99);
+                    }
                 }
             }
         }
-        animalsInside = contents.Count;
+        animalsInside = 0;
         contents.Clear();
     }
 

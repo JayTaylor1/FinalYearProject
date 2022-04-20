@@ -118,7 +118,7 @@ public class FoxBehaviour : MonoBehaviour
         tree.AddChild(FoxTree);
         
 
-        tree.PrintTree();
+        //tree.PrintTree();
 
         if (Age <= 1)
         {
@@ -199,7 +199,6 @@ public class FoxBehaviour : MonoBehaviour
         }
         if (Vector3.Distance(this.transform.position, target.transform.position) < Sense)
         {
-            Action = "Chasing";
             return Node.Status.SUCCESS;
         }
         /*
@@ -215,7 +214,7 @@ public class FoxBehaviour : MonoBehaviour
 
     public Node.Status isNightTime()
     {
-        if (getTimeofDay() >= 22f || getTimeofDay() <= 4f)
+        if (getTimeofDay() >= 22f || getTimeofDay() <= 4f || Hunger > 100)
         {
             return Node.Status.SUCCESS;
         }
@@ -372,6 +371,7 @@ public class FoxBehaviour : MonoBehaviour
     {
         if (mate != null)
         {
+            Action = "Going To Mate";
             return GoToLocation(mate.transform.position);
         }
         return Node.Status.FAILED;
@@ -380,6 +380,7 @@ public class FoxBehaviour : MonoBehaviour
     Vector3 lastSeen = Vector3.zero;
     public Node.Status gotoLastSeen()
     {
+        Action = "Alert";
         return GoToLocation(lastSeen);
     }
 
@@ -390,10 +391,11 @@ public class FoxBehaviour : MonoBehaviour
 
     public Node.Status eatPrey()
     {
+        //Action = "Eating";
         //target = GetClosestTarget();
         target.GetComponent<RabbitBehaviour>().Die();
         target = null;
-        print("Rabbit Eaten!");
+        //print("Rabbit Eaten!");
         Hunger += 40;
         return Node.Status.SUCCESS;
     }
@@ -405,7 +407,7 @@ public class FoxBehaviour : MonoBehaviour
         {
             return Node.Status.FAILED;
         }
-        Action = "In Pursuit";
+        Action = "In Persuit";
         Vector3 targetDir = target.transform.position - this.transform.position;
         float relativeHeading = Vector3.Angle(this.transform.forward, this.transform.TransformVector(target.transform.forward));
         float toTarget = Vector3.Angle(this.transform.forward, this.transform.TransformVector(targetDir));
@@ -722,6 +724,36 @@ public class FoxBehaviour : MonoBehaviour
     public void setReproductionCooldown(int cd)
     {
         reproductionCoolDown = cd;
+    }
+
+    public float getSpeed()
+    {
+        return Speed;
+    }
+
+    public float getSense()
+    {
+        return Sense;
+    }
+
+    public int getHunger()
+    {
+        return Hunger;
+    }
+
+    public string getMaturity()
+    {
+        return Maturity;
+    }
+
+    public int getAge()
+    {
+        return Age;
+    }
+
+    public void setHunger(int h) 
+    { 
+            Hunger = h;
     }
 
 

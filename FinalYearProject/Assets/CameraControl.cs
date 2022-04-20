@@ -34,24 +34,30 @@ public class CameraControl : MonoBehaviour
         {
             this.transform.Rotate(-Vector3.right * Speed * 2 * Time.deltaTime, Space.World);
         }
+        if (Input.GetKey(KeyCode.Escape))
+        {
+            ui.HidePanel();
+            selectedObject = null;
+        }
 
         if (Input.GetMouseButtonDown(0))
         {
+            
+
+
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
             GameObject ClosestAnimal = null;
             if (Physics.Raycast(ray, out hit, 1000))
             {
                 ClosestAnimal = getNearestGameObject(hit);
-                Debug.Log(ClosestAnimal + "  Distance:  " + Vector3.Distance(hit.point, ClosestAnimal.transform.position));
+                //Debug.Log(ClosestAnimal + "  Distance:  " + Vector3.Distance(hit.point, ClosestAnimal.transform.position));
                 if ((Vector3.Distance(hit.point, ClosestAnimal.transform.position) < 10)){
+                    ui.DisplayPanel();
                     selectedObject = ClosestAnimal;
-                    ui.setselectedGOTxt(ClosestAnimal.gameObject.name);
-
+                    ui.displayAnimal(ClosestAnimal);
                 }
-
             }
-
         }
 
         //update the position
