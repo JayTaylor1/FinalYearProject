@@ -25,7 +25,7 @@ public class LightingManager : MonoBehaviour
 
     public float secondsPerHour;
 
-
+    public GameObject clouds;
 
 
     int previousDay = 0;
@@ -35,6 +35,8 @@ public class LightingManager : MonoBehaviour
 
     private void Start()
     {
+        clouds = GameObject.Find("Cloud");
+
         rabbits.AddRange(GameObject.FindGameObjectsWithTag("rabbit"));
         foxs.AddRange(GameObject.FindGameObjectsWithTag("fox"));
         foxhomes.AddRange(GameObject.FindGameObjectsWithTag("foxhome"));
@@ -151,12 +153,20 @@ public class LightingManager : MonoBehaviour
         foreach (GameObject rabbit in rabbits)
         {
             rabbit.GetComponent<RabbitBehaviour>().incrementAge();
+            if (rabbit.GetComponent<RabbitBehaviour>().getAge() == 4)
+            {
+                rabbit.GetComponent<RabbitBehaviour>().findNewHome();
+            }
         }
 
         //GameObject[] rabbits = GameObject.FindGameObjectsWithTag("rabbit");
         foreach (GameObject fox in foxs)
         {
             fox.GetComponent<FoxBehaviour>().incrementAge();
+            if (fox.GetComponent<FoxBehaviour>().getAge() == 4)
+            {
+                fox.GetComponent<FoxBehaviour>().findNewHome();
+            }
         }
 
         /*
@@ -259,8 +269,32 @@ public class LightingManager : MonoBehaviour
         return foxhomes;
     }
 
+    public List<GameObject> getRabbits()
+    {
+        return rabbits;
+    }
+
+    public List<GameObject> getFoxs()
+    {
+        return foxs;
+    }
 
 
+    public void enableClouds(bool c)
+    {
+        clouds.SetActive(c);
+    }
+
+
+    public float getSecondsPerHour()
+    {
+        return secondsPerHour;
+    }
+
+    public void setSecondsPerHour(int sph)
+    {        
+        secondsPerHour = sph;
+    }
 
 
 }

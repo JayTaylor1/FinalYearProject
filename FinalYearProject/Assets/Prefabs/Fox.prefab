@@ -80,6 +80,7 @@ MonoBehaviour:
   reproductionCoolDown: 0
   mate: {fileID: 0}
   foxPrefab: {fileID: 7469542269669948697}
+  foxHomePrefab: {fileID: 4221572096472673255, guid: 4698b963b55e08d44b341ca9ccec9c02, type: 3}
 --- !u!1001 &7469542267928687609
 PrefabInstance:
   m_ObjectHideFlags: 0

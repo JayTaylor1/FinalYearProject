@@ -78,6 +78,7 @@ MonoBehaviour:
   Energy: 100
   isDead: 0
   rabbitPrefab: {fileID: 5397605305159267447}
+  rabbitHomePrefab: {fileID: 7744506762180992640, guid: ceb14d7e87a168642b13e90e478c48a2, type: 3}
   Age: 0
   previousTargetPosition: {x: 0, y: 0, z: 0}
   timeTaken: 0

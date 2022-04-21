@@ -7,11 +7,13 @@ public class CameraControl : MonoBehaviour
     float Speed = 5f;
     public UIHandler ui = null;
     public GameObject selectedObject = null;
+    LightingManager lm;
 
     // Start is called before the first frame update
     void Start()
     {
         ui = GameObject.Find("SceneManagement").GetComponent<UIHandler>();
+        lm = GameObject.Find("SceneManagement").GetComponent<LightingManager>();
     }
 
     // Update is called once per frame
@@ -52,10 +54,16 @@ public class CameraControl : MonoBehaviour
             {
                 ClosestAnimal = getNearestGameObject(hit);
                 //Debug.Log(ClosestAnimal + "  Distance:  " + Vector3.Distance(hit.point, ClosestAnimal.transform.position));
-                if ((Vector3.Distance(hit.point, ClosestAnimal.transform.position) < 10)){
+                if (ClosestAnimal != null && Vector3.Distance(hit.point, ClosestAnimal.transform.position) < 10){
                     ui.DisplayPanel();
                     selectedObject = ClosestAnimal;
                     ui.displayAnimal(ClosestAnimal);
+                }
+                else
+                {
+                    selectedObject = null;
+                    ui.HidePanel();
+                    ui.clearAnimal();
                 }
             }
         }
@@ -70,35 +78,40 @@ public class CameraControl : MonoBehaviour
         //print(h.point);
         GameObject ClosestGO = null;
 
+        List<GameObject> rabbits = lm.getRabbits();
+        List<GameObject> foxs = lm.getFoxs();
 
-        GameObject[] rabbits = GameObject.FindGameObjectsWithTag("rabbit");
-        GameObject[] foxs = GameObject.FindGameObjectsWithTag("fox");
 
-        if (rabbits.Length == 0 && foxs.Length == 0)
+        //GameObject[] rabbits = GameObject.FindGameObjectsWithTag("rabbit");
+        //GameObject[] foxs = GameObject.FindGameObjectsWithTag("fox");
+
+        if (rabbits.Count == 0 && foxs.Count == 0)
         {
             return null;
         }
 
         float dist = Mathf.Infinity;
         
-        ClosestGO = rabbits[0];
+        //ClosestGO = rabbits[0];
 
-        for (int i = 0; i < rabbits.Length; i++)
+        //for (int i = 0; i < rabbits.Length; i++)
+        foreach (GameObject rabbit in rabbits)
         {
-            if (Vector3.Distance(h.point, rabbits[i].transform.position) < dist)
+            if (Vector3.Distance(h.point, rabbit.transform.position) < dist && rabbit.active)
             {
-                ClosestGO = rabbits[i];
-                dist = Vector3.Distance(h.point, rabbits[i].transform.position);
+                ClosestGO = rabbit;
+                dist = Vector3.Distance(h.point, rabbit.transform.position);
             }
         }
         //print(foxs.Length);
-        for (int i = 0; i < foxs.Length; i++)
+        //for (int i = 0; i < foxs.Length; i++)
+        foreach (GameObject fox in foxs)
         {
             //print(Vector3.Distance(h.point, foxs[i].transform.position));
-            if (Vector3.Distance(h.point, foxs[i].transform.position) < dist)
+            if (Vector3.Distance(h.point, fox.transform.position) < dist && fox.active)
             {
-                ClosestGO = foxs[i];
-                dist = Vector3.Distance(h.point, foxs[i].transform.position);
+                ClosestGO = fox;
+                dist = Vector3.Distance(h.point, fox.transform.position);
             }
         }
         return ClosestGO;

@@ -23,6 +23,7 @@ public class RabbitBehaviour : MonoBehaviour
     int reproductionCoolDown = 0;
 
     public GameObject rabbitPrefab;
+    public GameObject rabbitHomePrefab;
 
     GameObject SceneManager;
 
@@ -602,12 +603,6 @@ public class RabbitBehaviour : MonoBehaviour
             Maturity = "Elder";
             CanReproduce = false;
         }
-
-        if (Age == 4)
-        {
-            findNewHome();
-        }
-
         if (Age > 12)
         {
             float randValue = Random.value;
@@ -706,21 +701,31 @@ public class RabbitBehaviour : MonoBehaviour
     {
         //print("Rehoming");
         List<GameObject> rabbithomes = new List<GameObject>();
-
+        
 
         if (home == null)
         {
+            //Incase Manager hasnt been  instantiated yet.
             rabbithomes.AddRange(GameObject.FindGameObjectsWithTag("rabbithome"));
-            int randomNum = Random.Range(0, rabbithomes.Count - 1);
-            home = rabbithomes[randomNum];
+            float dist = Mathf.Infinity;
+            GameObject closestHome = rabbithomes[0];
+
+            foreach (GameObject rabbithome in rabbithomes)
+            {
+                if (Vector3.Distance(this.transform.position, rabbithome.transform.position) < dist)
+                {
+                    closestHome = rabbithome;
+                    dist = Vector3.Distance(this.transform.position, rabbithome.transform.position);
+                }
+            }
+            home = closestHome;
             home.GetComponent<home>().addOccupant(this.gameObject);
             return home;
         }
+
         rabbithomes = SceneManager.GetComponent<LightingManager>().getRabbitHomes();
-
-
         //for (int i = 0; i < rabbithomes.Count; i++)
-        foreach(GameObject rabbithome in rabbithomes)
+        foreach (GameObject rabbithome in rabbithomes)
         {
             //print(rabbithomes[i].GetComponent<home>().getOccupantCount());
             if(rabbithome.GetComponent<home>().getOccupantCount() == 0)
@@ -754,7 +759,25 @@ public class RabbitBehaviour : MonoBehaviour
 
             if (home.GetComponent<home>().getOccupantCount() > 3)
             {
-                //Create New Home
+                float circleRadius = 5f;
+                Vector2 circle = Random.insideUnitCircle;
+                Vector3 Circle3D = new Vector3(circle.x, 0, circle.y);
+                Vector3 HomePostion = this.transform.position + new Vector3(0, home.transform.position.y, 0) + (Circle3D * circleRadius);
+
+                NavMeshPath path = new NavMeshPath();
+                while (!agent.CalculatePath(HomePostion, path))
+                {
+                    circle = Random.insideUnitCircle;
+                    Circle3D = new Vector3(circle.x, 0, circle.y);
+                    HomePostion = this.transform.position + new Vector3(0, home.transform.position.y, 0) + (Circle3D * circleRadius);
+                }
+
+
+                home.GetComponent<home>().removeOccupant(this.gameObject);
+                GameObject newHome = (GameObject)Instantiate(rabbitHomePrefab, HomePostion, Quaternion.identity);
+                home = newHome;
+                home.GetComponent<home>().addOccupant(this.gameObject);
+                return home;
             }
         }
         return null;

@@ -24,6 +24,7 @@ public class FoxBehaviour : MonoBehaviour
     public int reproductionCoolDown;
     public GameObject mate;
     public GameObject foxPrefab;
+    public GameObject foxHomePrefab;
 
     GameObject SceneManager;
     //public float timeofday;
@@ -601,11 +602,6 @@ public class FoxBehaviour : MonoBehaviour
             CanReproduce = false;
         }
 
-        if (Age == 4)
-        {
-            findNewHome();
-        }
-
         if (Age > 14)
         {
             float randValue = Random.value;
@@ -636,53 +632,82 @@ public class FoxBehaviour : MonoBehaviour
         List<GameObject> foxhomes = new List<GameObject>();
         
         if (home == null)
-        { 
+        {
+            //Incase Manager hasnt been  instantiated yet.
             foxhomes.AddRange(GameObject.FindGameObjectsWithTag("foxhome"));
-            int randomNum = Random.Range(0, foxhomes.Count - 1);
-            home = foxhomes[randomNum];
+            float dist = Mathf.Infinity;
+            GameObject closestHome = foxhomes[0];
+
+            foreach (GameObject foxhome in foxhomes)
+            {
+                if (Vector3.Distance(this.transform.position, foxhome.transform.position) < dist)
+                {
+                    closestHome = foxhome;
+                    dist = Vector3.Distance(this.transform.position, foxhome.transform.position);
+                }
+            }
+            home = closestHome;
             home.GetComponent<home>().addOccupant(this.gameObject);
-            //print(home);
             return home;
         }
 
         foxhomes = SceneManager.GetComponent<LightingManager>().getFoxHomes();
 
-        for (int i = 0; i < foxhomes.Count; i++)
+        foreach (GameObject foxhome in foxhomes)
         {
             //print(foxhomes[i].GetComponent<home>().getOccupantCount());
-            if (foxhomes[i].GetComponent<home>().getOccupantCount() == 0)
+            if (foxhome.GetComponent<home>().getOccupantCount() == 0)
             {
                 home.GetComponent<home>().removeOccupant(this.gameObject);
-                home = foxhomes[i];
+                home = foxhome;
                 home.GetComponent<home>().addOccupant(this.gameObject);                
                 return home;
 
             }
 
-            if (foxhomes[i].GetComponent<home>().getOccupantCount() == 1)
+            if (foxhome.GetComponent<home>().getOccupantCount() == 1)
             {
-                if (Gender == "Male" && foxhomes[i].GetComponent<home>().getOccupants()[0].GetComponent<FoxBehaviour>().getGender() == "Female")
+                if (Gender == "Male" && foxhome.GetComponent<home>().getOccupants()[0].GetComponent<FoxBehaviour>().getGender() == "Female")
                 {
                     home.GetComponent<home>().removeOccupant(this.gameObject);
-                    home = foxhomes[i];
+                    home = foxhome;
                     home.GetComponent<home>().addOccupant(this.gameObject);
                     return home;
                 }
 
-                if (Gender == "Female" && foxhomes[i].GetComponent<home>().getOccupants()[0].GetComponent<FoxBehaviour>().getGender() == "Male")
+                if (Gender == "Female" && foxhome.GetComponent<home>().getOccupants()[0].GetComponent<FoxBehaviour>().getGender() == "Male")
                 {
                     home.GetComponent<home>().removeOccupant(this.gameObject);
-                    home = foxhomes[i];
+                    home = foxhome;
                     home.GetComponent<home>().addOccupant(this.gameObject);
                     return home;
                 }
-            }
-
-            if (home.GetComponent<home>().getOccupantCount() > 5)
-            {
-                //Create New Home
             }
         }
+        //Create New Home
+        if (home.GetComponent<home>().getOccupantCount() > 5)
+        {
+            float circleRadius = 3f;
+            Vector2 circle = Random.insideUnitCircle;
+            Vector3 Circle3D = new Vector3(circle.x, 0, circle.y);
+            Vector3 HomePostion = this.transform.position + new Vector3(0, home.transform.position.y, 0) + (Circle3D * circleRadius);
+
+            NavMeshPath path = new NavMeshPath();
+            while (!agent.CalculatePath(HomePostion, path))
+            {
+                circle = Random.insideUnitCircle;
+                Circle3D = new Vector3(circle.x, 0, circle.y);
+                HomePostion = this.transform.position + new Vector3(0,home.transform.position.y,0) + (Circle3D * circleRadius);
+            }
+
+
+            home.GetComponent<home>().removeOccupant(this.gameObject);
+            GameObject newHome = (GameObject)Instantiate(foxHomePrefab, HomePostion, Quaternion.identity);
+            home = newHome;
+            home.GetComponent<home>().addOccupant(this.gameObject);
+            return home;
+        }
+
         return null;
     }
 

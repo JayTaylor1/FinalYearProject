@@ -30,7 +30,15 @@ public class UIHandler : MonoBehaviour
     public Text AnimalMaturityTxt;
     public Text AnimalAgeTxt;
 
+    public GameObject cloudTog;
+    public InputField SecondsPHTxt;
+
     public GameObject SelectedAnimal = null;
+
+
+
+
+    public bool CloudsEnabled;
 
 
     LightingManager LM;
@@ -64,6 +72,13 @@ public class UIHandler : MonoBehaviour
         AnimalEnergyTxt = GameObject.Find("AnimalEnergyTxt").GetComponent<Text>();
         AnimalMaturityTxt = GameObject.Find("AnimalMaturityTxt").GetComponent<Text>();
         AnimalAgeTxt = GameObject.Find("AnimalAgeTxt").GetComponent<Text>();
+
+        cloudTog = GameObject.Find("CloudsTog");
+        cloudTog.GetComponent<Toggle>().isOn = true;
+
+        SecondsPHTxt = GameObject.Find("SecondsPHTxt").GetComponent<InputField>();
+        SecondsPHTxt.text = LM.getSecondsPerHour().ToString();
+
         Panel.gameObject.SetActive(false);
     }
 
@@ -148,4 +163,44 @@ public class UIHandler : MonoBehaviour
         Panel.gameObject.SetActive(false);
         SelectedAnimal = null;
     }
+
+    public void ChangeClouds()
+    {
+        if (cloudTog.GetComponent<Toggle>().isOn)
+        {
+            CloudsEnabled = true;
+        }
+        else if(!cloudTog.GetComponent<Toggle>().isOn)
+        {
+            CloudsEnabled = false;
+        }
+        LM.enableClouds(CloudsEnabled);
+    }
+
+    public void ChangeSecondsPerHour()
+    {
+
+        if (int.TryParse(SecondsPHTxt.text, out int result))
+        {
+            LM.setSecondsPerHour(result);
+
+            SecondsPHTxt.transform.Find("Text").GetComponent<Text>().color = Color.black;
+            //print("Change");
+        }
+        else
+        {
+            SecondsPHTxt.transform.Find("Text").GetComponent<Text>().color = Color.red;
+            //print("invalid");
+
+        }
+        
+        
+        //SecondsPHTxt.text = "APPLE";
+    }
+
+    public void clearAnimal()
+    {
+        SelectedAnimal = null;
+    }
+
 }
