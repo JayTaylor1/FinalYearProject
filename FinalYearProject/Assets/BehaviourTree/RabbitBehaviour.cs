@@ -699,7 +699,7 @@ public class RabbitBehaviour : MonoBehaviour
 
     public GameObject findNewHome()
     {
-        //print("Rehoming");
+        
         List<GameObject> rabbithomes = new List<GameObject>();
         
 
@@ -722,7 +722,6 @@ public class RabbitBehaviour : MonoBehaviour
             home.GetComponent<home>().addOccupant(this.gameObject);
             return home;
         }
-
         rabbithomes = SceneManager.GetComponent<LightingManager>().getRabbitHomes();
         //for (int i = 0; i < rabbithomes.Count; i++)
         foreach (GameObject rabbithome in rabbithomes)
@@ -756,29 +755,45 @@ public class RabbitBehaviour : MonoBehaviour
                     return home;
                 }
             }
+        }
+        if (home.GetComponent<home>().getOccupantCount() > 3)
+        {
+            float circleRadius = 5f;
+            Vector2 circle = Random.insideUnitCircle;
+            Vector3 Circle3D = new Vector3(circle.x, 0, circle.y);
+            Vector3 HomePostion = this.transform.position + new Vector3(0, home.transform.position.y, 0) + (Circle3D * circleRadius);
 
-            if (home.GetComponent<home>().getOccupantCount() > 3)
+            //NavMeshPath path = new NavMeshPath();
+            /*
+            while (!agent.CalculatePath(HomePostion, path))
             {
-                float circleRadius = 5f;
-                Vector2 circle = Random.insideUnitCircle;
-                Vector3 Circle3D = new Vector3(circle.x, 0, circle.y);
-                Vector3 HomePostion = this.transform.position + new Vector3(0, home.transform.position.y, 0) + (Circle3D * circleRadius);
-
-                NavMeshPath path = new NavMeshPath();
-                while (!agent.CalculatePath(HomePostion, path))
-                {
-                    circle = Random.insideUnitCircle;
-                    Circle3D = new Vector3(circle.x, 0, circle.y);
-                    HomePostion = this.transform.position + new Vector3(0, home.transform.position.y, 0) + (Circle3D * circleRadius);
-                }
-
-
-                home.GetComponent<home>().removeOccupant(this.gameObject);
-                GameObject newHome = (GameObject)Instantiate(rabbitHomePrefab, HomePostion, Quaternion.identity);
-                home = newHome;
-                home.GetComponent<home>().addOccupant(this.gameObject);
-                return home;
+                circle = Random.insideUnitCircle;
+                Circle3D = new Vector3(circle.x, 0, circle.y);
+                HomePostion = this.transform.position + new Vector3(0, home.transform.position.y, 0) + (Circle3D * circleRadius);
             }
+            */
+
+
+            home.GetComponent<home>().removeOccupant(this.gameObject);
+            GameObject newHome = (GameObject)Instantiate(rabbitHomePrefab, HomePostion, Quaternion.identity);
+            home = newHome;
+            home.GetComponent<home>().addOccupant(this.gameObject);
+
+            var ray = new Ray(home.transform.position, Vector3.down);
+            RaycastHit hit;
+            if (Physics.Raycast(ray, out hit, 100))
+            {
+                print(hit.transform.gameObject);
+                if (hit.transform.gameObject.tag == "floor")
+                {
+                    home.transform.position = new Vector3(home.transform.position.x, hit.point.y, home.transform.position.z);
+                }
+            }
+
+
+
+            
+            return home;
         }
         return null;
     }

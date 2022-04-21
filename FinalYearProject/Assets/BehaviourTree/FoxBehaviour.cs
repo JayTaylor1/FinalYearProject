@@ -26,6 +26,8 @@ public class FoxBehaviour : MonoBehaviour
     public GameObject foxPrefab;
     public GameObject foxHomePrefab;
 
+    public bool Selected = false;
+
     GameObject SceneManager;
     //public float timeofday;
 
@@ -692,19 +694,36 @@ public class FoxBehaviour : MonoBehaviour
             Vector3 Circle3D = new Vector3(circle.x, 0, circle.y);
             Vector3 HomePostion = this.transform.position + new Vector3(0, home.transform.position.y, 0) + (Circle3D * circleRadius);
 
-            NavMeshPath path = new NavMeshPath();
+            //NavMeshPath path = new NavMeshPath();
+            /*
             while (!agent.CalculatePath(HomePostion, path))
             {
                 circle = Random.insideUnitCircle;
                 Circle3D = new Vector3(circle.x, 0, circle.y);
                 HomePostion = this.transform.position + new Vector3(0,home.transform.position.y,0) + (Circle3D * circleRadius);
             }
+            */
 
 
             home.GetComponent<home>().removeOccupant(this.gameObject);
             GameObject newHome = (GameObject)Instantiate(foxHomePrefab, HomePostion, Quaternion.identity);
             home = newHome;
             home.GetComponent<home>().addOccupant(this.gameObject);
+
+
+            var ray = new Ray(home.transform.position, Vector3.down);
+            RaycastHit hit;
+            if (Physics.Raycast(ray, out hit, 100))
+            {
+                print(hit.transform.gameObject);
+                if (hit.transform.gameObject.tag == "floor")
+                {
+                    home.transform.position = new Vector3(home.transform.position.x, hit.point.y + 1, home.transform.position.z);
+                }
+            }
+
+            print("New Home Created");
+
             return home;
         }
 

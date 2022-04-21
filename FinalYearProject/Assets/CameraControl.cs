@@ -56,11 +56,20 @@ public class CameraControl : MonoBehaviour
                 //Debug.Log(ClosestAnimal + "  Distance:  " + Vector3.Distance(hit.point, ClosestAnimal.transform.position));
                 if (ClosestAnimal != null && Vector3.Distance(hit.point, ClosestAnimal.transform.position) < 10){
                     ui.DisplayPanel();
+                    if (selectedObject != null)
+                    {
+                        selectedObject.transform.Find("SelectedIndicator").gameObject.SetActive(false);
+                    }
                     selectedObject = ClosestAnimal;
                     ui.displayAnimal(ClosestAnimal);
+                    ClosestAnimal.transform.Find("SelectedIndicator").gameObject.SetActive(true);
                 }
                 else
                 {
+                    if (ClosestAnimal != null)
+                    {
+                        ClosestAnimal.transform.Find("SelectedIndicator").gameObject.SetActive(false);
+                    }
                     selectedObject = null;
                     ui.HidePanel();
                     ui.clearAnimal();
