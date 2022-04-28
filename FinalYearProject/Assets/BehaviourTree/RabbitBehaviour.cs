@@ -15,6 +15,7 @@ public class RabbitBehaviour : MonoBehaviour
     public GameObject home = null;
     public GameObject mate;
     public string Action;
+    public string Status;
     public string Maturity;
     public string Gender;
     public bool CanReproduce = true;
@@ -550,6 +551,20 @@ public class RabbitBehaviour : MonoBehaviour
     void Update()
     {
         treeStatus = tree.Process();
+
+        if (isDead)
+        {
+            Status = "Dead";
+        }
+        else if (Energy < 30)
+        {
+            Status = "Tired";
+        }
+        else
+        {
+            Status = "Normal";
+        }
+
     }
 
 
@@ -665,6 +680,7 @@ public class RabbitBehaviour : MonoBehaviour
         SceneManager.GetComponent<LightingManager>().removeAnimal(this.gameObject);
         home.GetComponent<home>().removeOccupant(this.gameObject);
         isDead = true;
+        Status = "Dead";
         this.gameObject.SetActive(false);
     }
 
@@ -690,6 +706,10 @@ public class RabbitBehaviour : MonoBehaviour
     public string getMaturity()
     {
         return Maturity;
+    }
+    public string getStatus()
+    {
+        return Status;
     }
     public int getAge()
     {

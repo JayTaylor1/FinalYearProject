@@ -14,6 +14,7 @@ public class FoxBehaviour : MonoBehaviour
     GameObject target;
     public GameObject home = null;
     public string Action;
+    public string Status;
     public string Gender = null;
     public bool isDead = false;
     public int Hunger = 100;
@@ -542,6 +543,19 @@ public class FoxBehaviour : MonoBehaviour
 
         treeStatus = tree.Process();
 
+
+        if (isDead)
+        {
+            Status = "Dead";
+        }
+        else if (Hunger < 30)
+        {
+            Status = "Hungry";
+        }
+        else
+        {
+            Status = "Normal";
+        }
     }
 
     float getTimeofDay()
@@ -798,6 +812,10 @@ public class FoxBehaviour : MonoBehaviour
     public void setHunger(int h) 
     { 
             Hunger = h;
+    }
+    public string getStatus()
+    {
+        return Status;
     }
 
 

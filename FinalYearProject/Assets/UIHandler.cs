@@ -119,7 +119,14 @@ public class UIHandler : MonoBehaviour
             RabbitBehaviour rb = SelectedAnimal.GetComponent<RabbitBehaviour>();
 
             AnimalTypeTxt.text = "Rabbit";
-            AnimalStatusTxt.text = "NA";
+            if (rb.getStatus() == "Normal")
+            {
+                AnimalStatusTxt.text = rb.getStatus();
+            }
+            else
+            {
+                AnimalStatusTxt.text = rb.getStatus() + "!";
+            }
             AnimalSpeedTxt.text = "Speed: " + rb.getSpeed().ToString("F1");
             AnimalSenseTxt.text = "Sense: " + rb.getSense().ToString("F1");
 
@@ -134,7 +141,14 @@ public class UIHandler : MonoBehaviour
             FoxBehaviour fb = SelectedAnimal.GetComponent<FoxBehaviour>();
 
             AnimalTypeTxt.text = "Fox";
-            AnimalStatusTxt.text = "NA";
+            if (fb.getStatus() == "Normal")
+            {
+                AnimalStatusTxt.text = fb.getStatus();
+            }
+            else
+            {
+                AnimalStatusTxt.text = fb.getStatus() + "!";
+            }
             AnimalSpeedTxt.text = "Speed: " + fb.getSpeed().ToString("F1");
             AnimalSenseTxt.text = "Sense: " + fb.getSense().ToString("F1");
 
