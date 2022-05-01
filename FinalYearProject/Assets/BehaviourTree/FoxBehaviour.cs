@@ -401,6 +401,10 @@ public class FoxBehaviour : MonoBehaviour
         target = null;
         //print("Rabbit Eaten!");
         Hunger += 40;
+        if (Hunger > 30)
+        {
+            agent.speed = Speed;
+        }
         return Node.Status.SUCCESS;
     }
 
@@ -566,6 +570,10 @@ public class FoxBehaviour : MonoBehaviour
     public void decrementHunger()
     {
         Hunger--;
+        if (Hunger < 30)
+        {
+            agent.speed = Speed * 0.8f;
+        }
         if (Hunger <= 0)
         {
             Die();

@@ -421,10 +421,19 @@ public class RabbitBehaviour : MonoBehaviour
 
         float lookingAngle = Vector3.Angle(toTarget, toHide);
 
+        Vector3 VtoHide = chosenGO.transform.position - this.transform.position;
         Vector3 VtoTarget = target.transform.position - this.transform.position;
         float AngleToTarget = Vector3.Angle(this.transform.forward, VtoTarget);
+        float AngleToHide = Vector3.Angle(this.transform.forward, VtoHide);
 
-        if (lookingAngle > 60 || AngleToTarget > 135)
+        //Looking Angle is the angle betwen the 
+        bool targetinfront = false;
+        
+
+        //if (lookingAngle > 60 || AngleToTarget > 135)
+
+        //if fox is behind you and hide is infront
+        if (AngleToTarget > 135 && AngleToHide < 90)
         {
             Action = "Hiding";
             Collider hideCol = chosenGO.GetComponent<Collider>();
