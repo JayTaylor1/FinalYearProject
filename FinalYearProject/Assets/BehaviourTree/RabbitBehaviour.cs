@@ -147,6 +147,7 @@ public class RabbitBehaviour : MonoBehaviour
         {
             Speed = Random.Range(3.0f, 3.5f);
         }
+        agent.speed = Speed;
 
         if (Sense <= 0)
         {
@@ -300,6 +301,34 @@ public class RabbitBehaviour : MonoBehaviour
         if (Gender == "Female")
         {
             GameObject Child = (GameObject)Instantiate(rabbitPrefab, this.transform.position, Quaternion.identity);
+
+            float ChildSpeed;
+            float ChildSense;
+
+            if (Speed > mate.GetComponent<RabbitBehaviour>().getSpeed())
+            {
+                int PosorNeg = Random.Range(0, 2) * 2 - 1;
+                ChildSpeed = Speed + (PosorNeg * Speed * 0.1f);
+            }
+            else
+            {
+                int PosorNeg = Random.Range(0, 2) * 2 - 1;
+                ChildSpeed = mate.GetComponent<RabbitBehaviour>().getSpeed() + (PosorNeg * mate.GetComponent<RabbitBehaviour>().getSpeed() * 0.1f);
+            }
+
+            if (Sense > mate.GetComponent<RabbitBehaviour>().getSense())
+            {
+                int PosorNeg = Random.Range(0, 2) * 2 - 1;
+                ChildSense = Sense + (PosorNeg * Sense * 0.1f);
+            }
+            else
+            {
+                int PosorNeg = Random.Range(0, 2) * 2 - 1;
+                ChildSense = mate.GetComponent<RabbitBehaviour>().getSense() + (PosorNeg * mate.GetComponent<RabbitBehaviour>().getSense() * 0.1f);
+            }
+            Child.GetComponent<RabbitBehaviour>().setSpeed(ChildSpeed);
+            Child.GetComponent<RabbitBehaviour>().setSense(ChildSense);
+
             Child.GetComponent<RabbitBehaviour>().setAge(0);
             if (Random.value < 0.5)
             {
@@ -595,6 +624,19 @@ public class RabbitBehaviour : MonoBehaviour
     void setHome(GameObject h)
     {
         home = h;
+    }
+
+    public void setSpeed(float s)
+    {
+        Speed = s;
+        if (agent != null) { 
+            agent.speed = Speed;
+        }
+    }
+
+    public void setSense(float s)
+    {
+        Sense = s;
     }
 
     public void incrementAge()

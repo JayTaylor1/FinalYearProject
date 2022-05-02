@@ -161,6 +161,7 @@ public class FoxBehaviour : MonoBehaviour
         {
             Speed = Random.Range(3.0f, 3.5f);
         }
+        agent.speed = Speed;
 
         if (Sense <= 0)
         {
@@ -349,6 +350,36 @@ public class FoxBehaviour : MonoBehaviour
         if (Gender == "Female")
         {
             GameObject Child = (GameObject)Instantiate(foxPrefab, this.transform.position, Quaternion.identity);
+            float ChildSpeed;
+            float ChildSense;
+
+
+
+            if (Speed > mate.GetComponent<FoxBehaviour>().getSpeed())
+            {
+                int PosorNeg = Random.Range(0, 2) * 2 - 1;
+                ChildSpeed = Speed + (PosorNeg * Speed * 0.1f);
+            }
+            else
+            {
+                int PosorNeg = Random.Range(0, 2) * 2 - 1;
+                ChildSpeed = mate.GetComponent<FoxBehaviour>().getSpeed() + (PosorNeg * mate.GetComponent<FoxBehaviour>().getSpeed() * 0.1f);
+            }
+
+            if (Sense > mate.GetComponent<FoxBehaviour>().getSense())
+            {
+                int PosorNeg = Random.Range(0, 2) * 2 - 1;
+                ChildSense = Sense + (PosorNeg * Sense * 0.1f);
+            }
+            else
+            {
+                int PosorNeg = Random.Range(0, 2) * 2 - 1;
+                ChildSense = mate.GetComponent<FoxBehaviour>().getSense() + (PosorNeg * mate.GetComponent<FoxBehaviour>().getSense() * 0.1f);
+            }
+            Child.GetComponent<FoxBehaviour>().setSpeed(ChildSpeed);
+            Child.GetComponent<FoxBehaviour>().setSense(ChildSense);
+
+
             Child.GetComponent<FoxBehaviour>().setAge(0);
             if (Random.value < .5)
             {
@@ -361,6 +392,10 @@ public class FoxBehaviour : MonoBehaviour
 
             Child.GetComponent<FoxBehaviour>().setHome(home);
             Child.transform.localScale = new Vector3(0.75f, 0.75f, 0.75f);
+
+
+
+
             CanReproduce = false;
             reproductionCoolDown = 4;
             mate.GetComponent<FoxBehaviour>().setCanReproduce(false);
@@ -785,6 +820,20 @@ public class FoxBehaviour : MonoBehaviour
     void setHome(GameObject h)
     {
         home = h;
+    }
+
+    public void setSpeed(float s)
+    {
+        Speed = s;
+        if (agent != null)
+        {
+            agent.speed = Speed;
+        }
+    }
+
+    public void setSense(float s)
+    {
+        Sense = s;
     }
 
     public void setReproductionCooldown(int cd)
