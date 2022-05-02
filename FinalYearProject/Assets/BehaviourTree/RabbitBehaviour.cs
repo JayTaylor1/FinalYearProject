@@ -353,22 +353,25 @@ public class RabbitBehaviour : MonoBehaviour
 
 
     //Can go home if facing towards home and there is no preditors infront
+    //NOTE IN ORDER FOR THE RABBIT TO GO HOME THIS CONDITION MUST SUCCEED
     public Node.Status CanGoHome()
     {
         Vector3 toHome = home.transform.position - this.transform.position;
+        //If home is in front
         float lookingAngle = Vector3.Angle(this.transform.forward, toHome);
         if (lookingAngle < 45)
         {
             GameObject[] Preditors = GameObject.FindGameObjectsWithTag("fox");
-
-            GameObject closestPreditors = Preditors[0];
-
-            for (int i = 0; i < Preditors.Length; i++)
+            //GameObject closestPreditors = Preditors[0];
+            //If there is any preditors in front
+            foreach (GameObject preditor in Preditors)
             {
-                Vector3 toEnemy = this.transform.position - Preditors[i].transform.position;
+                Vector3 toEnemy = preditor.transform.position - this.transform.position;
                 float angleToEnemy = Vector3.Angle(this.transform.forward, toEnemy);
-
-                if ((Vector3.Distance(this.transform.position, Preditors[i].transform.position) < Sense) && angleToEnemy > 45.0f)
+                //if in sense radius and enemy is BEHIND  
+                //if ((Vector3.Distance(this.transform.position, preditor.transform.position) < Sense) && angleToEnemy > 45.0f)
+                //FAIL IF ENEMY IN RADIUS IS IN FRONT
+                if ((Vector3.Distance(this.transform.position, preditor.transform.position) < Sense) && angleToEnemy < 60.0f)
                 {
                     return Node.Status.FAILED;
                 }
@@ -427,17 +430,19 @@ public class RabbitBehaviour : MonoBehaviour
         float dist = Mathf.Infinity;
         Vector3 chosenSpot = Vector3.zero;
         Vector3 chosenDir = Vector3.zero;
-        GameObject chosenGO = World.Instance.GetHidingSpots()[0];
+        GameObject[] HidingSpots = World.Instance.GetHidingSpots();
+        GameObject chosenGO = HidingSpots[0];
 
-        for (int i = 0; i < World.Instance.GetHidingSpots().Length; i++)
+        //for (int i = 0; i < World.Instance.GetHidingSpots().Length; i++)
+        foreach (GameObject HidingSpot in HidingSpots)
         {
-            Vector3 hideDir = World.Instance.GetHidingSpots()[i].transform.position - target.transform.position;
-            Vector3 hidePos = World.Instance.GetHidingSpots()[i].transform.position + hideDir.normalized * 5;
+            Vector3 hideDir = HidingSpot.transform.position - target.transform.position;
+            Vector3 hidePos = HidingSpot.transform.position + hideDir.normalized * 5;
             if (Vector3.Distance(this.transform.position, hidePos) < dist)
             {
                 chosenSpot = hidePos;
                 chosenDir = hideDir;
-                chosenGO = World.Instance.GetHidingSpots()[i];
+                chosenGO = HidingSpot;
                 dist = Vector3.Distance(this.transform.position, hidePos);
             }
         }
@@ -445,24 +450,27 @@ public class RabbitBehaviour : MonoBehaviour
         //if theres no fox ibetween this and the chosen hide
 
 
-        Vector3 toHide = chosenGO.transform.position - this.transform.position;
-        Vector3 toTarget = target.transform.position - this.transform.position;
+        //Vector3 toHide = chosenGO.transform.position - this.transform.position;
+        //Vector3 toTarget = target.transform.position - this.transform.position;
 
-        float lookingAngle = Vector3.Angle(toTarget, toHide);
+        //float lookingAngle = Vector3.Angle(toTarget, toHide);
 
         Vector3 VtoHide = chosenGO.transform.position - this.transform.position;
         Vector3 VtoTarget = target.transform.position - this.transform.position;
         float AngleToTarget = Vector3.Angle(this.transform.forward, VtoTarget);
         float AngleToHide = Vector3.Angle(this.transform.forward, VtoHide);
 
+        float AngleBetwenFoxRabbitHide = Vector3.Angle(VtoHide, VtoTarget);
+
         //Looking Angle is the angle betwen the 
         bool targetinfront = false;
-        
+
 
         //if (lookingAngle > 60 || AngleToTarget > 135)
 
         //if fox is behind you and hide is infront
-        if (AngleToTarget > 135 && AngleToHide < 90)
+        //if (AngleToTarget > 135 && AngleToHide < 90)
+        if ((AngleToTarget > 135 && AngleToHide < 90) || (AngleToTarget > 135 && dist < 10))
         {
             Action = "Hiding";
             Collider hideCol = chosenGO.GetComponent<Collider>();

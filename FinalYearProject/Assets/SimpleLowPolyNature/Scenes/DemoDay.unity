@@ -22251,8 +22251,8 @@ MonoBehaviour:
   DirectionalLight: {fileID: 1940115118}
   Preset: {fileID: 11400000, guid: 08ec720eccd5b43468c55c83243ae847, type: 2}
   TimeOfDay: 0
-  RabbitCount: 15
-  FoxCount: 4
+  RabbitCount: 16
+  FoxCount: 5
   Day: 0
   secondsPerHour: 3
   clouds: {fileID: 76279291}
